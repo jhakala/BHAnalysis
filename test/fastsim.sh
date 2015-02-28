@@ -1,0 +1,11 @@
+cmsDriver.py Configuration/GenProduction/python/EightTeV/Hadronizer_TuneZ2star_8TeV_generic_LHE_pythia_cff.py \
+-s GEN,FASTSIM,HLT:GRun --beamspot Realistic8TeVCollision \
+--pileup 2012_Startup_inTimeOnly \
+--geometry DB \
+--conditions START52_V5::All \
+--eventcontent RECOSIM \
+--datatier GEN-SIM-DIGI-RECO \
+--filein file:../BM1_MD1.5_M4.5_n2.lhe \
+--fileout file:BlackHoleSignal.root \
+--filetype LHE \
+-n 10
