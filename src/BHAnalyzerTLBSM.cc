@@ -117,6 +117,12 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
               
       bool isMCBH;
 
+      edm::InputTag ebRecHitsLabel_;
+      edm::InputTag eeRecHitsLabel_;
+
+      edm::EDGetTokenT<EcalRecHitCollection> ebRecHitsToken_;
+      edm::EDGetTokenT<EcalRecHitCollection> eeRecHitsToken_;
+
       reco::TrackBase::TrackQuality _trackQuality;
  
       std::vector< std::map<std::string,TH1*> > histos_; 
@@ -266,8 +272,11 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
   rechitELabel_(iConfig.getUntrackedParameter<edm::InputTag>("rechitETag")),
   pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
-  isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false))
-  
+  isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
+  ebRecHitsLabel_("ecalRecHit:EcalRecHitsEB"),
+  eeRecHitsLabel_("ecalRecHit:EcalRecHitsEE"),
+  ebRecHitsToken_(consumes<EcalRecHitCollection>(ebRecHitsLabel_)),
+  eeRecHitsToken_(consumes<EcalRecHitCollection>(eeRecHitsLabel_))
 {
    //now do what ever initialization is needed
 
@@ -548,17 +557,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }  
    // ecal information
    
-   lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,edm::InputTag("ecalRecHit:EcalRecHitsEB"),edm::InputTag("ecalRecHit:EcalRecHitsEE")) );
+   lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,ebRecHitsToken_,eeRecHitsToken_) );
 
    // get ecal barrel recHits for spike rejection
    edm::Handle<EcalRecHitCollection> recHitsEB_h;
-   iEvent.getByLabel(edm::InputTag("ecalRecHit:EcalRecHitsEB"), recHitsEB_h );
-   const EcalRecHitCollection * recHitsEB = 0;
-   if ( ! recHitsEB_h.isValid() ) {
-     LogError("ExoDiPhotonAnalyzer") << " ECAL Barrel RecHit Collection not available !"; return;
-   } else {
-     recHitsEB = recHitsEB_h.product();
-   }
+   iEvent.getByLabel(ebRecHitsLabel_, recHitsEB_h );
+   // const EcalRecHitCollection * recHitsEB = 0;
+   // if ( ! recHitsEB_h.isValid() ) {
+   //   LogError("ExoDiPhotonAnalyzer") << " ECAL Barrel RecHit Collection not available !"; return;
+   // } else {
+   //   recHitsEB = recHitsEB_h.product();
+   // }
          
    //PAT photons     
    for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){

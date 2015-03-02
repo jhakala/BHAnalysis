@@ -364,9 +364,9 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
   // MET
   math::XYZTLorentzVectorF pBH;
 
-  float sumPx2;
-  float sumPy2;
-  float sumPxPy;
+  float sumPx2 = 0;
+  float sumPy2 = 0;
+  float sumPxPy = 0; 
       
   //Leading objects
   std::vector<double> leadingJets (4,-1);
@@ -466,8 +466,8 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
   if (!foundNames) std::cout << "Could not get trigger names!\n";
   if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " << triggerList.size() << "," << tr.size() << endl;
   // dump trigger list at first event
-  int ht_trig_fired = 0;
-  int rsq_trig_fired = 0;
+  // int ht_trig_fired = 0;
+  // int rsq_trig_fired = 0;
  
   for (unsigned int i=0; i< tr.size(); i++) {
     if ( !tr[i].accept() == 1 ) continue;    
@@ -547,13 +547,15 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (e->pt() > threshold_ && fabs(e->eta()) < 2.4) {
       
       const float ElectronD0Cut_ = 0.04, EtaThr_e = 2.5, ElectronETSCThr_ = 15., RemuThr = 0.1, ElectronVertexMatchThr_ = 1., RelIso_e = 0.2;
-      float D0_e = 99., Chi2_e = 99., ET_SC = -1.;
+      float D0_e = 99.;
+      // float Chi2_e = 99., 
+      float ET_SC = -1.;
       
       bool hadId((int)e->electronID("eidTight") & 0x1);
       bool isNotConv((int)e->electronID("eidTight") & 0x4); 
       bool isGsfElectron = true;
       if (!e->gsfTrack()) isGsfElectron = false;
-      int nlosthits   = e->gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      int nlosthits   = e->gsfTrack()->numberOfLostHits();
       double convDist = e->convDist();
       double convDcot = e->convDcot();
       D0_e      = e->gsfTrack()->dxy(beamSpotHandle->position());
@@ -690,13 +692,13 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (!(mu->isTrackerMuon()) || !(mu->isGlobalMuon())) continue;
       
       const float MuonRelIso = 0.02, MuonD0Cut = 0.02, MuonVertexMatchThr = 1., MuonNofValidHits = 0, MuonNofValidTrHits = 10., MuonNormChi2 = 10.;
-      float D0 = 99., Chi2 = 99., D0Inner = 99., D0Standard = 99., RelIso03PF = 99.;
+      float Chi2 = 99., D0Inner = 99., D0Standard = 99., RelIso03PF = 99.;
       int NValidHits = -1, NTrValidHits = -1;
       
       // Get the tracker track from the muon       
       const reco::TrackRef globalTrack = mu->globalTrack();
       if (globalTrack.isNonnull()) {
-	D0   = globalTrack->dxy(beamSpotHandle->position());
+	// D0   = globalTrack->dxy(beamSpotHandle->position());
 	Chi2 = globalTrack->normalizedChi2();
       }
       if (mu->innerTrack().isNonnull()) D0Inner = mu->innerTrack()->dxy (beamSpotHandle->position());
@@ -713,7 +715,7 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
       float PATNeutralHadronIso =  mu->neutralHadronIso();
       float PATChargedHadronIso =  mu->chargedHadronIso();
       float PATPhotonIso        =  mu->photonIso();
-      float PATTrackIso         =  mu->trackIso(); 
+      // float PATTrackIso         =  mu->trackIso(); 
       RelIso03PF                = ((PATNeutralHadronIso+PATChargedHadronIso+PATPhotonIso)/mu->pt());
       
       if (DEBUG_) {

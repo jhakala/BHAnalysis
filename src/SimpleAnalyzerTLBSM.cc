@@ -130,13 +130,14 @@ SimpleAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     if (electron.pt() > metThreshold_ && fabs(electron.eta()) < 2.4) {
       
       const float ElectronD0Cut_ = 0.04, EtaThr_e = 2.5, ElectronETSCThr_ = 15., RemuThr = 0.1, ElectronVertexMatchThr_ = 1., RelIso_e = 0.2;
-      float D0_e = 99., Chi2_e = 99., ET_SC = -1.;
+      float D0_e = 99., ET_SC = -1.;
+      //Chi2_e = 99.;
       
       bool hadId((int)electron.electronID("eidTight") & 0x1);
       bool isNotConv((int)electron.electronID("eidTight") & 0x4); 
       bool isGsfElectron = true;
       if (!electron.gsfTrack()) isGsfElectron = false;
-      int nlosthits   = electron.gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      int nlosthits   = electron.gsfTrack()->numberOfLostHits();
       double convDist = electron.convDist();
       double convDcot = electron.convDcot();
       D0_e      = electron.gsfTrack()->dxy(beamSpotHandle->position());
@@ -227,13 +228,13 @@ SimpleAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       if (!(muon.isTrackerMuon()) || !(muon.isGlobalMuon())) continue;
       
       const float MuonRelIso = 0.02, MuonD0Cut = 0.02, MuonVertexMatchThr = 1., MuonNofValidHits = 0, MuonNofValidTrHits = 10., MuonNormChi2 = 10.;
-      float D0 = 99., Chi2 = 99., D0Inner = 99., D0Standard = 99., RelIso03PF = 99.;
+      float Chi2 = 99., D0Inner = 99., D0Standard = 99., RelIso03PF = 99.;
       int NValidHits = -1, NTrValidHits = -1;
       
       // Get the tracker track from the muon       
       const reco::TrackRef globalTrack = muon.globalTrack();
       if (globalTrack.isNonnull()) {
-	D0   = globalTrack->dxy(beamSpotHandle->position());
+	// D0   = globalTrack->dxy(beamSpotHandle->position());
 	Chi2 = globalTrack->normalizedChi2();
       }
       if (muon.innerTrack().isNonnull()) D0Inner = muon.innerTrack()->dxy (beamSpotHandle->position());
@@ -242,15 +243,15 @@ SimpleAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
       D0Standard = muon.dB(pat::Muon::BS2D); //Much more elegant way to find D0. Compare it to D0Inner!
       
       float muvz = muon.vz();
-      float pvx = primaryVertex.x();
-      float pvy = primaryVertex.y();
+      // float pvx = primaryVertex.x();
+      // float pvy = primaryVertex.y();
       float pvz = primaryVertex.z();
       
       //Isolation: 
       float PATNeutralHadronIso =  muon.neutralHadronIso();
       float PATChargedHadronIso =  muon.chargedHadronIso();
       float PATPhotonIso        =  muon.photonIso();
-      float PATTrackIso         =  muon.trackIso(); 
+      // float PATTrackIso         =  muon.trackIso(); 
       RelIso03PF                = ((PATNeutralHadronIso+PATChargedHadronIso+PATPhotonIso)/muon.pt());
       
       if (DEBUG_) {
