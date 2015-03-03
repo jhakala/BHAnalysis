@@ -268,13 +268,11 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
   tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
   metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
   phoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("photonTag")),
-  rechitBLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rechitBTag")),
-  rechitELabel_(iConfig.getUntrackedParameter<edm::InputTag>("rechitETag")),
   pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
   isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
-  ebRecHitsLabel_("ecalRecHit:EcalRecHitsEB"),
-  eeRecHitsLabel_("ecalRecHit:EcalRecHitsEE"),
+  ebRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("ebRecHitTag")),
+  eeRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("eeRecHitTag")),
   ebRecHitsToken_(consumes<EcalRecHitCollection>(ebRecHitsLabel_)),
   eeRecHitsToken_(consumes<EcalRecHitCollection>(eeRecHitsLabel_))
 {
@@ -335,10 +333,6 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    iEvent.getByLabel(tauLabel_,tauHandle);
    //const edm::View<pat::Tau> & taus = *tauHandle;
 
-   edm::Handle<View<reco::Track> >  trackHandle;
-   iEvent.getByLabel("generalTracks",trackHandle);
-   const edm::View<reco::Track> & tracks = *trackHandle;
-
    // Swiss cross - ECAL cleaning
    edm::View<pat::Photon>::const_iterator photon;
    Handle<EcalRecHitCollection> Brechit;//barrel
@@ -397,11 +391,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    float leadingMuPt  = 0;
    float leadingPhPt  = 0;
 
-   int jetcnt         = -1;
+   // int jetcnt         = -1;
    int elecnt         = -1;
    //int mucnt        = -1;
    //int phcnt        = -1;
-   int ntracks        = 0;
    int ngoodmuons     = 0;
    int ngoodphotons   = 0;
    int ngoodelectrons = 0;
@@ -420,29 +413,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
    
    // No scraping
-   bool noscrap = false;
-   float fraction = 0;
-    
-   edm::Handle<reco::TrackCollection> tkRef;
-   iEvent.getByLabel("generalTracks",tkRef);    
-   const reco::TrackCollection* tkColl = tkRef.product();
-
-   int numhighpurity=0;
-   _trackQuality = reco::TrackBase::qualityByName("highPurity");
- 
-   if(tkColl->size()>10){ 
-     reco::TrackCollection::const_iterator itk = tkColl->begin();
-     reco::TrackCollection::const_iterator itk_e = tkColl->end();
-     for(;itk!=itk_e;++itk){
-       //std::cout << "HighPurity?  " << itk->quality(_trackQuality) << std::endl;
-       if(itk->quality(_trackQuality)) numhighpurity++;
-     }
-     fraction = (float)numhighpurity/(float)tkColl->size();
-     if(fraction>0.25) noscrap=true;
-   }else{
-     //if less than 10 Tracks accept the event anyway    
-     noscrap = true;
-   }
+   bool noscrap = true;
    
    // HLT results   
    firedHLT_L1Jet6U = false;
@@ -497,7 +468,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      if( triggerList[i] == "HLT_L1MET20") { firedHLT_L1MET20 = true; }
 
    }
-  
+
    for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
      
      ++jetcnt; 
@@ -525,6 +496,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      ++ngoodjets;
      
    }   
+
    
    for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
 
@@ -649,10 +621,6 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      MuDxy[ngoodmuons-1] = fabs(mu->innerTrack()->dxy(bs));
 
    }
-
-   for(edm::View<reco::Track>::const_iterator trk = tracks.begin(); trk!=tracks.end(); ++trk){
-     ++ntracks;
-   }
    
    for (int i=0;i<25;++i) {
      if (i>=ngoodjets) {
@@ -735,7 +703,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }   
    
    NPV = nPVcount;
-   NTracks = ntracks;
+   NTracks = 0;
    NJets = ngoodjets;
    NElectrons = ngoodelectrons;
    NMuons = ngoodmuons; 	//not using muons.size() here as |dxy(bs)| < 0.2 might remove cosmics
