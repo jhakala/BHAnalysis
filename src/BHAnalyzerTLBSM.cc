@@ -113,7 +113,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::InputTag triggerLabel_;
 
       // tools for clusters
-      std::auto_ptr<EcalClusterLazyTools> lazyTools_;
+      // std::auto_ptr<EcalClusterLazyTools> lazyTools_;
               
       bool isMCBH;
 
@@ -532,7 +532,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }  
    // ecal information
    
-   lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,ebRecHitsToken_,eeRecHitsToken_) );
+   // lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,ebRecHitsToken_,eeRecHitsToken_) );
 
    // get ecal barrel recHits for spike rejection
    edm::Handle<EcalRecHitCollection> recHitsEB_h;
@@ -546,7 +546,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          
    //PAT photons     
    for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){
-     
+
+     /*
      double e4 = 	lazyTools_->eTop(*((*ph).superCluster()->seed())) 	+ 
      			lazyTools_->eBottom(*((*ph).superCluster()->seed())) 	+
      			lazyTools_->eLeft(*((*ph).superCluster()->seed()))	+
@@ -554,13 +555,14 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      			
      double eMax = ph->maxEnergyXtal();  
      double spikeSelector = 1-e4/eMax;
-     
+      
      if(spikeSelector > 0.95 && fabs(ph->eta())<1.560) {
        std::cout <<"Swiss cross variable "<<spikeSelector<<" run "<<runno<<" event "<<evtno<<std::endl;
        std::cout <<"This photon candidate is an ECAL spike identified by Swiss Cross algorithm. Removing it from photons"<<std::endl;
        continue;
      }
-     
+     */
+
      if (abs(ph->eta()) > 2.4) continue;
           	
      //If not a spike, increment # photons
@@ -586,16 +588,16 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      PhPt[ngoodphotons-1] = ph->pt();
      PhEta[ngoodphotons-1] = ph->eta();      
      PhPhi[ngoodphotons-1] = ph->phi();
-     PhSwissCross[ngoodphotons-1] = spikeSelector;
+     //PhSwissCross[ngoodphotons-1] = spikeSelector;
      
    }
   
    for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
      
-     muon_d0 = fabs(mu->innerTrack()->dxy(bs));
+     // Muons don't have an innerTrack() method in miniAOD?
+     // muon_d0 = fabs(mu->innerTrack()->dxy(bs));
+     // if (fabs(mu->innerTrack()->dxy(bs))>0.2) continue;
 
-     if (fabs(mu->innerTrack()->dxy(bs))>0.2) continue;
-     
      // If a good muon (config muon ID + dxy), increment # muons
      ++ngoodmuons;
      
