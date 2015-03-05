@@ -136,7 +136,9 @@ private:
   float JetPt[25];
   float JetEta[25];
   float JetPhi[25];      
-  float JetEMF[25];
+  
+  // JetEMF was made from emEnergyFraction()--this does not work with our PAT jets
+  // float JetEMF[25];
   
   float EleE[25];
   float ElePx[25];
@@ -534,7 +536,7 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
       JetPt[jetcnt] = jet->pt();
       JetEta[jetcnt] = jet->eta();      
       JetPhi[jetcnt] = jet->phi();
-      //JetEMF[jetcnt] = jet->emEnergyFraction();
+      // JetEMF[jetcnt] = jet->emEnergyFraction();
       
       ++ngoodjets;
     }   
@@ -791,7 +793,7 @@ BHAnalyzerPATTuplesTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetu
       JetPt[i]=0.;
       JetEta[i]=99.;
       JetPhi[i]=99.;
-      JetEMF[i]=99.;
+      // JetEMF[i]=99.;
     }
     if (i>=ngoodelectrons) {
       EleE[i]=0.;
@@ -1019,7 +1021,7 @@ void BHAnalyzerPATTuplesTLBSM::beginJob()
   tree->Branch("JetPt",&JetPt,"JetPt[25]");
   tree->Branch("JetEta",&JetEta,"JetEta[25]");
   tree->Branch("JetPhi",&JetPhi,"JetPhi[25]");
-  tree->Branch("JetEMF",&JetEMF,"JetEMF[25]");  
+  // tree->Branch("JetEMF",&JetEMF,"JetEMF[25]");  
 
   tree->Branch("EleE",&EleE,"EleE[25]");
   tree->Branch("ElePx",&ElePx,"ElePx[25]");
