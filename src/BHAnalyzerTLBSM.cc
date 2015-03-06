@@ -814,14 +814,15 @@ void BHAnalyzerTLBSM::beginJob()
   tree = fs_->make<TTree>("t","t");
   //h_norm = new TH1F("h_norm","",500,0,50000);
 
-  tree->Branch("JetE",&JetE,"JetE[25]");
-  tree->Branch("JetPx",&JetPx,"JetPx[25]");
-  tree->Branch("JetPy",&JetPy,"JetPy[25]");
-  tree->Branch("JetPz",&JetPz,"JetPz[25]");
-  tree->Branch("JetPt",&JetPt,"JetPt[25]");
-  tree->Branch("JetEta",&JetEta,"JetEta[25]");
-  tree->Branch("JetPhi",&JetPhi,"JetPhi[25]");
-  // tree->Branch("JetEMF",&JetEMF,"JetEMF[25]");  
+  tree->Branch("NJets",&NJets,"NJets/I");
+  tree->Branch("JetE",&JetE,"JetE[NJets]");
+  tree->Branch("JetPx",&JetPx,"JetPx[NJets]");
+  tree->Branch("JetPy",&JetPy,"JetPy[NJets]");
+  tree->Branch("JetPz",&JetPz,"JetPz[NJets]");
+  tree->Branch("JetPt",&JetPt,"JetPt[NJets]");
+  tree->Branch("JetEta",&JetEta,"JetEta[NJets]");
+  tree->Branch("JetPhi",&JetPhi,"JetPhi[NJets]");
+  // tree->Branch("JetEMF",&JetEMF,"JetEMF[NJets]");  
 
   tree->Branch("EleE",&EleE,"EleE[25]");
   tree->Branch("ElePx",&ElePx,"ElePx[25]");
@@ -865,7 +866,6 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("Ph",PhArr,"PhArr[4]");   
   tree->Branch("NPV",&NPV,"NPV/I");   
   tree->Branch("NTracks",&NTracks,"NTracks/I");   
-  tree->Branch("NJets",&NJets,"NJets/I");
   tree->Branch("NElectrons",&NElectrons,"NElectrons/I");
   tree->Branch("NPhotons",&NPhotons,"NPhotons/I");
   tree->Branch("NMuons",&NMuons,"NMuons/I");
