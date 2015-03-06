@@ -623,7 +623,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      MuPt[ngoodmuons-1] = mu->pt();
      MuEta[ngoodmuons-1] = mu->eta();      
      MuPhi[ngoodmuons-1] = mu->phi(); 
-     MuDxy[ngoodmuons-1] = fabs(mu->innerTrack()->dxy(bs));
+     MuDxy[ngoodmuons-1] = 0.; //fabs(mu->innerTrack()->dxy(bs));
 
    }
    
