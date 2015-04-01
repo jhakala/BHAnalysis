@@ -11,7 +11,7 @@ from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 process.GlobalTag.globaltag = 'PHYS14_25_V1'
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1

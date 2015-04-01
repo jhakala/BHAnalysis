@@ -91,6 +91,11 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       virtual void endJob() ;
 
       // ----------member data ---------------------------
+      bool jetid(const edm::View<pat::Jet>::const_iterator &jet_itr);
+      bool electronid(const edm::View<pat::Electron>::const_iterator &e_itr,double pvtx);
+      bool photonid(const edm::View<pat::Photon>::const_iterator &ph_itr);
+      bool muonid(const edm::View<pat::Muon>::const_iterator &mu_itr);
+
       edm::Service<TFileService> fs_;  
       
       void createHistogram(const std::string& folderName);
@@ -255,11 +260,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 //
 // constants, enums and typedefs
 //
-
-//
 // static data member definitions
-//
-
 //
 // constructors and destructor
 //
@@ -366,7 +367,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // MET
    math::XYZTLorentzVectorF pBH;
    pBH += mets[0].p4();
-   Met = mets[0].pt();
+   Met = mets[0].et();
    MetPhi = mets[0].phi();
    ST += Met;
    
@@ -404,9 +405,11 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    int nPVcount       = 0;
    
    //------ Primary Vertices     
-   edm::Handle< reco::VertexCollection > PVCollection; 
+   edm::Handle< reco::VertexCollection > PVCollection;
+   iEvent.getByLabel(pvSrc_, PVCollection);
+   const reco::Vertex & vertex_ = PVCollection->front(); 
    if (iEvent.getByLabel(pvSrc_, PVCollection )) {
-     for (reco::VertexCollection::const_iterator pv = PVCollection->begin(); pv != PVCollection->end(); ++pv) {
+   for (reco::VertexCollection::const_iterator pv = PVCollection->begin(); pv != PVCollection->end(); ++pv) {
        //--- vertex selection
        //std::cout<<" PV "<<pv->x()<<" "<<pv->y()<<" "pv->z()<<std::endl;
        //std::cout<<"PV parameters "<<pv->isFake()<<" "<<fabs(pv->z())<<" "<<pv->position().Rho()<<std::endl;
@@ -470,16 +473,19 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      if( triggerList[i] == "HLT_L1MET20") { firedHLT_L1MET20 = true; }
 
    }
+for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
+if(jetid(jet)){
+	     
+             ++jetcnt; 
+	     pBH += jet->p4();
+	     ST += jet->et();
+	     sumPx2 += jet->px()*jet->px();
+	     sumPy2 += jet->py()*jet->py();
+	     sumPxPy += jet->px()*jet->py();      
+	   
 
-   for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
-     
-     ++jetcnt; 
-     pBH += jet->p4();
-     ST += jet->pt();
-     sumPx2 += jet->px()*jet->px();
-     sumPy2 += jet->py()*jet->py();
-     sumPxPy += jet->px()*jet->py();      
-      
+
+
      leadingJets.push_back(jet->pt());
      leadingObjects.push_back(jet->pt());
 
@@ -497,16 +503,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     // JetEMF[jetcnt] = jet->emEnergyFraction();
      
      ++ngoodjets;
-     
+     }// ID-function
    }   
 
-   
-   for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
 
+
+
+   for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
+   double vtx = fabs(e->gsfTrack()->dxy(vertex_.position()));
+     if(electronid(e,vtx)){
      ++elecnt;
-          
-     pBH += e->p4();
-     ST += e->pt();
+     ST += e->et();
      sumPx2 += e->px()*e->px();
      sumPy2 += e->py()*e->py();
      sumPxPy += e->px()*e->py();
@@ -528,7 +535,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      EleEta[elecnt] = e->eta();      
      ElePhi[elecnt] = e->phi(); 
      ++ngoodelectrons;
-                
+                }//ID-function
    }  
    // ecal information
    
@@ -546,7 +553,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          
    //PAT photons     
    for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){
-
+if(photonid(ph)){
      /*
      double e4 = 	lazyTools_->eTop(*((*ph).superCluster()->seed())) 	+ 
      			lazyTools_->eBottom(*((*ph).superCluster()->seed())) 	+
@@ -569,7 +576,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      ++ngoodphotons;
      
      pBH += ph->p4();
-     ST += ph->pt();
+     ST += ph->et();
      sumPx2 += ph->px()*ph->px();
      sumPy2 += ph->py()*ph->py();
      sumPxPy += ph->px()*ph->py();
@@ -589,9 +596,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      PhEta[ngoodphotons-1] = ph->eta();      
      PhPhi[ngoodphotons-1] = ph->phi();
      //PhSwissCross[ngoodphotons-1] = spikeSelector;
-     
+     }//ID-function
    }
-  
    for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
      
      // Muons don't have an innerTrack() method in miniAOD?
@@ -599,10 +605,12 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      // if (fabs(mu->innerTrack()->dxy(bs))>0.2) continue;
 
      // If a good muon (config muon ID + dxy), increment # muons
+if(muonid(mu)){
+
      ++ngoodmuons;
      
      pBH += mu->p4();
-     ST += mu->pt();
+     ST += mu->et();
      sumPx2 += mu->px()*mu->px();
      sumPy2 += mu->py()*mu->py();
      sumPxPy += mu->px()*mu->py();
@@ -624,7 +632,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      MuEta[ngoodmuons-1] = mu->eta();      
      MuPhi[ngoodmuons-1] = mu->phi(); 
      MuDxy[ngoodmuons-1] = 0.; //fabs(mu->innerTrack()->dxy(bs));
-
+       }//ID-funtion
    }
    
    for (int i=0;i<25;++i) {
@@ -948,6 +956,72 @@ bool BHAnalyzerTLBSM::check(std::string process, std::string pCheck) {
   
   return value;
 }
+
+//************************
+//       Object ID       *
+//************************
+//JET ID (Medium criteria https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID) 
+//muon fraction is not appplied.
+bool BHAnalyzerTLBSM::jetid(const edm::View<pat::Jet>::const_iterator &jet_itr){
+if(
+jet_itr->pt() > 20 && 
+abs(jet_itr->eta()) < 2.6 && 
+jet_itr->numberOfDaughters() > 1 && 
+jet_itr->neutralHadronEnergyFraction() < 0.95 && 
+jet_itr->neutralEmEnergyFraction() < 0.95 && 
+jet_itr->chargedEmEnergyFraction() < 0.9  && 
+(jet_itr->chargedEmEnergyFraction() < 0.99 || abs(jet_itr->eta()) >= 2.4) && 
+(jet_itr->chargedHadronEnergyFraction() > 0. || abs(jet_itr->eta()) >= 2.4) && 
+(jet_itr->chargedMultiplicity() > 0 || abs(jet_itr->eta()) >= 2.4)
+) return true;
+else
+  return false;	
+}
+//Electron ID 
+// (https://twiki.cern.ch/twiki/bin/view/CMS/TopEGM)
+// e->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 0, doestn't work for MiniAOD 
+bool BHAnalyzerTLBSM::electronid(const edm::View<pat::Electron>::const_iterator &e_itr, double pvtx){
+if( 
+e_itr->pt() > 20. && 
+pvtx < 0.04 &&
+abs(e_itr->eta()) < 2.5  && 
+abs(e_itr->superCluster()->eta())<1.442 && 
+abs(e_itr->superCluster()->eta())>1.5660 &&
+e_itr->electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-medium") > 0.5 && 
+e_itr->passConversionVeto() && 
+(e_itr->chargedHadronIso()+max(0.,e_itr->neutralHadronIso()+e_itr->photonIso()-1.0*e_itr->userIsolation("User1Iso")))/e_itr->et() < 0.1
+)return true;
+else
+return false;
+}
+//Photon ID
+// Didn't find good link to implement in the code
+bool BHAnalyzerTLBSM::photonid(const edm::View<pat::Photon>::const_iterator &ph_itr){
+if( 
+ph_itr->pt() > 20. && 
+abs(ph_itr->eta()) < 2.5  && 
+abs(ph_itr->superCluster()->eta())<1.442 && 
+abs(ph_itr->superCluster()->eta())>1.5660  
+)return true;
+else
+return false;
+}
+
+//Muon ID
+//(https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO)
+bool BHAnalyzerTLBSM::muonid(const edm::View<pat::Muon>::const_iterator &mu_itr){
+ if(
+mu_itr->pt() > 20. && 
+mu_itr->isPFMuon() && 
+(mu_itr->isGlobalMuon() || mu_itr->isTrackerMuon()) && 
+(mu_itr->chargedHadronIso()+max(0.,mu_itr->neutralHadronIso()+mu_itr->photonIso()-0.50*mu_itr->puChargedHadronIso()))/mu_itr->pt() < 0.1 &&
+abs(mu_itr->eta()) < 2.1  
+)return true;
+else
+return false;
+}
+//**********End of IDs Bool************
+
 
 // ------------ method called once each job just after ending the event loop  ------------
 void BHAnalyzerTLBSM::endJob() {
