@@ -39,6 +39,7 @@
 #include "DataFormats/PatCandidates/interface/Tau.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
+
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/JetID.h"
@@ -63,6 +64,8 @@
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
+#include "DataFormats/Common/interface/ValueMap.h"
+
 #include <map>
 #include <vector>
 #include <string>
@@ -86,18 +89,13 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 
 
    private:
-      virtual void beginJob() ;
+     virtual void beginJob();
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
+      virtual void endJob();
 
       // ----------member data ---------------------------
-      bool jetid(const edm::View<pat::Jet>::const_iterator &jet_itr);
-      bool electronid(const edm::View<pat::Electron>::const_iterator &e_itr,double pvtx);
-      bool photonid(const edm::View<pat::Photon>::const_iterator &ph_itr);
-      bool muonid(const edm::View<pat::Muon>::const_iterator &mu_itr);
-
       edm::Service<TFileService> fs_;  
-      
+
       void createHistogram(const std::string& folderName);
       bool check(std::string process, std::string pCheck);
       void init(const edm::TriggerResults &, const edm::TriggerNames & HLTNames);
@@ -116,14 +114,17 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::InputTag rechitELabel_;
       edm::InputTag pvSrc_;
       edm::InputTag triggerLabel_;
-
+      edm::InputTag rhoLabel_;
+      
       // tools for clusters
+
       // std::auto_ptr<EcalClusterLazyTools> lazyTools_;
               
       bool isMCBH;
+      bool DEBUG_;
 
-      edm::InputTag ebRecHitsLabel_;
-      edm::InputTag eeRecHitsLabel_;
+      //edm::InputTag ebRecHitsLabel_;
+      //edm::InputTag eeRecHitsLabel_;
 
       edm::EDGetTokenT<EcalRecHitCollection> ebRecHitsToken_;
       edm::EDGetTokenT<EcalRecHitCollection> eeRecHitsToken_;
@@ -133,6 +134,14 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       std::vector< std::map<std::string,TH1*> > histos_; 
       std::vector<std::string> cutNames_;
       //TH1F* h_norm;
+      
+      edm::EDGetTokenT<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMapToken_; 
+      edm::EDGetTokenT<edm::ValueMap<float> > phoChargedIsolationToken_; 
+      edm::EDGetTokenT<edm::ValueMap<float> > phoNeutralHadronIsolationToken_; 
+      edm::EDGetTokenT<edm::ValueMap<float> > phoPhotonIsolationToken_; 
+
+      edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
 
       //TTree
       TTree* tree;
@@ -143,7 +152,12 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float JetPt[25];
       float JetEta[25];
       float JetPhi[25];      
-      
+      int   JetNumOfDaughters[25];      
+      float JetNeutralHadEnergyFrac[25]; 
+      float JetChargeHadEnergyFrac[25];     
+      float JetNeutralEmEnergyFrac[25];      
+      float JetChargeEmEnergyFrac[25];      
+      float JetChargeMult[25]; 
       // JetEMF was made from emEnergyFraction()--this does not work with our PAT jets
       // float JetEMF[25];
       
@@ -153,7 +167,21 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float ElePz[25];
       float ElePt[25];
       float EleEta[25];
-      float ElePhi[25];      
+      float ElePhi[25]; 
+      float EleSupEta[25];     
+      float EleRelIsoR03DB[25];      
+      float EleAbsDxy[25];      
+      float EleNumOfHits[25];      
+      float EleChargeHadIso[25];
+      float EleNeutralHadIso[25];
+      float ElePhotonIso[25];
+      float EleUsrIso[25];
+      float EleEt[25];
+      float EleVtx[25];
+      int   EleVetoId[25];      
+      int   EleMediumId[25];      
+      int   ElePassConvVeto[25];
+
 
       float PhE[25];
       float PhPx[25];
@@ -161,9 +189,22 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float PhPz[25];
       float PhPt[25];
       float PhEta[25];
+      float PhSupEta[25];
       float PhPhi[25];
       float PhSwissCross[25];      
-
+      float PhHadoverEM[25];
+      float PhHasPixelSeed[25];
+      float Ph5x5sigmaIetaIeta[25];
+      float Phr9[25];
+      
+      double PhIsoChargedHadrons[25];
+      double PhIsoNeutralHadrons[25];
+      double PhIsoPhotons[25];
+      
+      double PhIsoChargedHadronsEA[25];
+      double PhIsoNeutralHadronsEA[25];
+      double PhIsoPhotonsEA[25];
+      
       float MuE[25];
       float MuPx[25];
       float MuPy[25];
@@ -171,7 +212,15 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float MuPt[25];
       float MuEta[25];
       float MuPhi[25];    
-      float MuDxy[25];  
+      float MuAbsDxy[25];  
+      float MuNormChi2[25];  
+      int   MuTrkLayers[25];  
+      int   MuValidHits[25];  
+      float MuDz[25];  
+      int   MuPixelHits[25];  
+      int   MuMatchedStations[25];  
+      float MuRelIsoR04DB[25];  
+      float MuRelIsoR03DB[25];  
       
       float ST;
       float mBH;
@@ -233,38 +282,53 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       int isRealData;
       float muon_d0;
                                                                                       
-      float LeadingArr[4];    
+  float LeadingArr[4];    
 
-      //HLT info (Jets and MET)
-      bool firedHLT_L1Jet6U;
-      bool firedHLT_L1Jet10U;
-      bool firedHLT_Jet15U;
-      bool firedHLT_Jet30U;
-      bool firedHLT_Jet50U;
-      bool firedHLT_DiJetAve15U_8E29;
-      bool firedHLT_DiJetAve30U_8E29;
-      bool firedHLT_MET45;
-      bool firedHLT_MET100;
-      bool firedHLT_HT100U;
-      bool firedHLT_HT140U;
-      bool firedHLT_HT140U_Eta3_v1;
-      bool firedHLT_HT160U_v1;
-      bool firedHLT_HT200U; 
-      bool firedHLT_HT200U_v1;     
-      bool firedHLT_FwdJet20U;
-      bool firedHLT_QuadJet15U;
-      bool firedHLT_L1MET20;
-      
-};
+  //HLT info (Jets and MET)
+  bool firedHLT_L1Jet6U;
+  bool firedHLT_L1Jet10U;
+  bool firedHLT_Jet15U;
+  bool firedHLT_Jet30U;
+  bool firedHLT_Jet50U;
+  bool firedHLT_DiJetAve15U_8E29;
+  bool firedHLT_DiJetAve30U_8E29;
+  bool firedHLT_MET45;
+  bool firedHLT_MET100;
+  bool firedHLT_HT100U;
+  bool firedHLT_HT140U;
+  bool firedHLT_HT140U_Eta3_v1;
+  bool firedHLT_HT160U_v1;
+  bool firedHLT_HT200U; 
+  bool firedHLT_HT200U_v1;     
+  bool firedHLT_FwdJet20U;
+  bool firedHLT_QuadJet15U;
+  bool firedHLT_L1MET20;
+  
+  double Reliso_el;
+  double Reliso_mu;
+  int pass_eleID_medium;      
+  
+  Float_t rho_;
 
-//
-// constants, enums and typedefs
-//
-// static data member definitions
-//
-// constructors and destructor
-//
-BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
+  };
+
+  // Effective areas for photons from Savvas's slide for phys14 PU20bx25, described here:
+  // https://indico.cern.ch/event/367861/contribution/3/material/slides/0.pdf
+  namespace EffectiveAreas {
+  const int nEtaBins = 7;
+  const float etaBinLimits[nEtaBins+1] = {0.0, 1.0, 1.479, 2.0, 2.2, 2.3, 2.4, 2.5};
+
+  const float areaPhotons[nEtaBins] = {0.0894361, 0.0750406, 0.0422692, 0.0561305, 0.0881777, 0.114391, 0.168394};
+  const float areaNeutralHadrons[nEtaBins] = {0.00491696, 0.0108215, 0.00185819, 0.0036691, 0.00619475, 0.0130409, 0.169902};
+  const float areaChargedHadrons[nEtaBins] = {0.00885603, 0.00615045, 0.00861475, 0.00412423, 0.0113191, 0.00846383, 0.0038625};
+  }
+
+  // constants, enums and typedefs
+
+  // static data member definitions
+
+  // constructors and destructor
+  BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
   eleLabel_(iConfig.getUntrackedParameter<edm::InputTag>("electronTag")),
   muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
   jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
@@ -273,15 +337,21 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
   phoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("photonTag")),
   pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
+  rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
   isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
-  ebRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("ebRecHitTag")),
-  eeRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("eeRecHitTag")),
-  ebRecHitsToken_(consumes<EcalRecHitCollection>(ebRecHitsLabel_)),
-  eeRecHitsToken_(consumes<EcalRecHitCollection>(eeRecHitsLabel_))
-{
+  DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
+  //eeRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("eeRecHitTag")),
+  //ebRecHitsToken_(consumes<EcalRecHitCollection>(ebRecHitsLabel_)),
+  //eeRecHitsToken_(consumes<EcalRecHitCollection>(eeRecHitsLabel_)),
+  full5x5SigmaIEtaIEtaMapToken_(consumes <edm::ValueMap<float> > (iConfig.getParameter<edm::InputTag>("full5x5SigmaIEtaIEtaMap"))),
+  phoChargedIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoChargedIsolation"))),
+phoNeutralHadronIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoNeutralHadronIsolation"))),
+  phoPhotonIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoPhotonIsolation"))),
+  electronVetoIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"))),
+  electronMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap")))
+  {
    //now do what ever initialization is needed
-
-}
+  }
 
 
 BHAnalyzerTLBSM::~BHAnalyzerTLBSM()
@@ -311,14 +381,44 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
    // first: get all objects from the event.
    //{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+  // All PF Candidate for alternate isolation
    
-   edm::Handle<edm::View<pat::Muon> > muonHandle;
-   iEvent.getByLabel(muoLabel_,muonHandle);
-   const edm::View<pat::Muon> & muons = *muonHandle;   // const ... &, we don't make a copy of it!
+   edm::Handle<double> rhoHandle;
+   iEvent.getByLabel(rhoLabel_,rhoHandle);
    
-   edm::Handle<edm::View<pat::Jet> > jetHandle;
-   iEvent.getByLabel(jetLabel_,jetHandle);
-   const edm::View<pat::Jet> & jets = *jetHandle;
+   if(rhoHandle.isValid()) {
+   rho_ = *(rhoHandle.product());
+   //std::cout<<"rho value = "<<*(rhoHandle.product())<<std::endl;
+   }
+   // Get the full5x5 sieie map
+   edm::Handle<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMap;
+   iEvent.getByToken(full5x5SigmaIEtaIEtaMapToken_, full5x5SigmaIEtaIEtaMap);
+
+  // Get the isolation maps
+  edm::Handle<edm::ValueMap<float> > phoChargedIsolationMap;
+  iEvent.getByToken(phoChargedIsolationToken_, phoChargedIsolationMap);
+  
+  edm::Handle<edm::ValueMap<float> > phoNeutralHadronIsolationMap;
+  iEvent.getByToken(phoNeutralHadronIsolationToken_, phoNeutralHadronIsolationMap);
+  
+  edm::Handle<edm::ValueMap<float> > phoPhotonIsolationMap;
+  iEvent.getByToken(phoPhotonIsolationToken_, phoPhotonIsolationMap);
+
+  // Get the electron ID data from the event stream.
+  // Note: this implies that the VID ID modules have been run upstream.
+  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
+  
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
+
+  edm::Handle<edm::View<pat::Muon> > muonHandle;
+  iEvent.getByLabel(muoLabel_,muonHandle);
+  const edm::View<pat::Muon> & muons = *muonHandle;   // const ... &, we don't make a copy of it!
+
+  edm::Handle<edm::View<pat::Jet> > jetHandle;
+  iEvent.getByLabel(jetLabel_,jetHandle);
+  const edm::View<pat::Jet> & jets = *jetHandle;
    
    edm::Handle<edm::View<pat::Electron> > electronHandle;
    iEvent.getByLabel(eleLabel_,electronHandle);
@@ -342,13 +442,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    Handle<EcalRecHitCollection> Erechit;//endcap
    iEvent.getByLabel(rechitBLabel_,Brechit);
    iEvent.getByLabel(rechitELabel_,Erechit);
-   //const EcalRecHitCollection* barrelRecHits= Brechit.product();
-   //const EcalRecHitCollection* endcapRecHits= Erechit.product();
 
    edm::ESHandle<CaloTopology> pTopology;
    edm::ESHandle<CaloTopology> theCaloTopo_;
    iSetup.get<CaloTopologyRecord>().get(theCaloTopo_);
-   //const CaloTopology *topology = theCaloTopo_.product();
    
    // Loop over all objects and evaluate BH properties: ST, mBH, multiplicity ...
    ST=0.;
@@ -367,7 +464,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // MET
    math::XYZTLorentzVectorF pBH;
    pBH += mets[0].p4();
-   Met = mets[0].et();
+   Met = mets[0].pt();
    MetPhi = mets[0].phi();
    ST += Met;
    
@@ -396,23 +493,28 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    int jetcnt         = -1;
    int elecnt         = -1;
-   //int mucnt        = -1;
-   //int phcnt        = -1;
+   int mucnt          = -1;
+   int phcnt          = -1;
    int ngoodmuons     = 0;
    int ngoodphotons   = 0;
    int ngoodelectrons = 0;
    int ngoodjets      = 0;   
    int nPVcount       = 0;
    
-   //------ Primary Vertices     
-   edm::Handle< reco::VertexCollection > PVCollection;
+   //------ Primary Vertices------- 
+   edm::Handle< reco::VertexCollection > PVCollection; 
    iEvent.getByLabel(pvSrc_, PVCollection);
-   const reco::Vertex & vertex_ = PVCollection->front(); 
+   const reco::Vertex & vertex_ = PVCollection->front();
+   //for (reco::VertexCollection::const_iterator vertex_ = PVCollection->begin(); vertex_ != PVCollection->end(); ++vertex_){
+   //std::cout<<"Vertex position "<<vertex_->position()<<endl; 
+   //}
+   
    if (iEvent.getByLabel(pvSrc_, PVCollection )) {
-   for (reco::VertexCollection::const_iterator pv = PVCollection->begin(); pv != PVCollection->end(); ++pv) {
+     for (reco::VertexCollection::const_iterator pv = PVCollection->begin(); pv != PVCollection->end(); ++pv) {
        //--- vertex selection
        //std::cout<<" PV "<<pv->x()<<" "<<pv->y()<<" "pv->z()<<std::endl;
        //std::cout<<"PV parameters "<<pv->isFake()<<" "<<fabs(pv->z())<<" "<<pv->position().Rho()<<std::endl;
+       //std::cout<<"PV position "<<pv->position()<<endl;
        if (!pv->isFake() && pv->ndof() > 4 && fabs(pv->z()) <= 15. && pv->position().Rho() <= 2.) ++nPVcount;       
      }
    }
@@ -473,167 +575,261 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      if( triggerList[i] == "HLT_L1MET20") { firedHLT_L1MET20 = true; }
 
    }
-for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
-if(jetid(jet)){
-	     
-             ++jetcnt; 
-	     pBH += jet->p4();
-	     ST += jet->et();
-	     sumPx2 += jet->px()*jet->px();
-	     sumPy2 += jet->py()*jet->py();
-	     sumPxPy += jet->px()*jet->py();      
-	   
+  
+  for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
+     if(jet->pt()<20 || abs(jet->eta())>2.4)continue;
+     jetcnt++;  
+    
+    if(DEBUG_){
+      cout <<"jet["<<jetcnt<<"]" <<
+      " | n_jets = "<<jets.size()<<
+      " | pt = "<<jet->pt()<<
+      " | eta = "<<fabs(jet->eta())<<
+      " | NoD = "<<jet->numberOfDaughters()<<
+      " | NHE = "<<jet->neutralHadronEnergyFraction()<<
+      " | CHE = "<<jet->chargedHadronEnergyFraction()<<
+      " | NEE = "<<jet->neutralEmEnergyFraction()<<
+      " | CEE = "<<jet->chargedEmEnergyFraction()<<
+      " | ChargedMulti = "<<jet->chargedMultiplicity()<<
+      " | "<<endl;
+    }
+    pBH += jet->p4();
+    ST  += jet->et();
+    sumPx2 += jet->px()*jet->px();
+    sumPy2 += jet->py()*jet->py();
+    sumPxPy += jet->px()*jet->py();      
+       
+    leadingJets.push_back(jet->pt());
+    leadingObjects.push_back(jet->pt());
+
+    pJet += jet->p4();
+    pObj += jet->p4(); 
+         
+    JetE[jetcnt]   = jet->energy();
+    JetPx[jetcnt]  = jet->px();
+    JetPy[jetcnt]  = jet->py();
+    JetPz[jetcnt]  = jet->pz();     
+    JetPt[jetcnt]  = jet->pt();
+    JetEta[jetcnt] = jet->eta();      
+    JetPhi[jetcnt] = jet->phi();
+    JetNumOfDaughters[jetcnt]       = jet->numberOfDaughters();
+    JetNeutralHadEnergyFrac[jetcnt] = jet->neutralHadronEnergyFraction();
+    JetChargeHadEnergyFrac[jetcnt]  = jet->chargedHadronEnergyFraction();
+    JetNeutralEmEnergyFrac[jetcnt]  = jet->neutralEmEnergyFraction();
+    JetChargeEmEnergyFrac[jetcnt]   = jet->chargedEmEnergyFraction();
+    JetChargeMult[jetcnt]           = jet->chargedMultiplicity();
+    ++ngoodjets;
+  }   
+   
+  for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
+   if(e->pt()<20 || abs(e->eta())>2.4 || !e->gsfTrack()) continue;
+    ++elecnt;
+    //smart pointer to pat::Electron
+    const Ptr<pat::Electron> elPtr(electronHandle, e - electronHandle->begin() );
+    double vtx = fabs(e->gsfTrack()->dxy(vertex_.position()));
+    // Rel-isolation with delta beta correction
+    reco::GsfElectron::PflowIsolationVariables pfIso = e->pfIsolationVariables();
+    double abs_Iso = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5*pfIso.sumPUPt );
+    Reliso_el = abs_Iso/e->pt();    
+       
+   
+    if(DEBUG_){  
+      cout <<"Ele["<<elecnt<<"]" <<
+      " | n_el = "<< electrons.size()<<
+      " | pt = "<<e->pt()<<
+      " | eta = "<<fabs(e->eta())<<
+      " | vtx_dxy = "<<fabs(e->gsfTrack()->dxy(vertex_.position()))<< 
+      " | reliso = "<<Reliso_el<< 
+      " | hit = "<<e->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)<<
+      " | passVetoId = "<<(*veto_id_decisions)[elPtr]<<
+      " | passMediumId = "<<(*medium_id_decisions)[elPtr]<<
+      " | "<<endl; 
+    }
+    pBH += e->p4();
+    ST  += e->et();
+    sumPx2 += e->px()*e->px();
+    sumPy2 += e->py()*e->py();
+    sumPxPy += e->px()*e->py();
+    if (e->pt() > leadingElePt) leadingElePt = e->pt();
+
+    leadingElectrons.push_back(e->pt());
+    leadingLeptons.push_back(e->pt());
+    leadingObjects.push_back(e->pt());                       
+
+    pEle += e->p4();
+    pLep += e->p4();      
+    pObj += e->p4(); 
 
 
-
-     leadingJets.push_back(jet->pt());
-     leadingObjects.push_back(jet->pt());
-
-     pJet += jet->p4();
-     pObj += jet->p4(); 
-           
-     JetE[jetcnt] = jet->energy();
-     JetPx[jetcnt] = jet->px();
-     JetPy[jetcnt] = jet->py();
-     JetPz[jetcnt] = jet->pz();     
-     JetPt[jetcnt] = jet->pt();
-     JetEta[jetcnt] = jet->eta();      
-     JetPhi[jetcnt] = jet->phi();
-    // Calling emEnergyFraction() throws the error "This PAT jet was not made from a CaloJet." 
-    // JetEMF[jetcnt] = jet->emEnergyFraction();
-     
-     ++ngoodjets;
-     }// ID-function
-   }   
-
-
-
-
-   for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
-   double vtx = fabs(e->gsfTrack()->dxy(vertex_.position()));
-     if(electronid(e,vtx)){
-     ++elecnt;
-     ST += e->et();
-     sumPx2 += e->px()*e->px();
-     sumPy2 += e->py()*e->py();
-     sumPxPy += e->px()*e->py();
-     if (e->pt() > leadingElePt) leadingElePt = e->pt();
-     
-     leadingElectrons.push_back(e->pt());
-     leadingLeptons.push_back(e->pt());
-     leadingObjects.push_back(e->pt());                       
-     
-     pEle += e->p4();
-     pLep += e->p4();      
-     pObj += e->p4(); 
-
-     EleE[elecnt] = e->energy();
-     ElePx[elecnt] = e->px();
-     ElePy[elecnt] = e->py();
-     ElePz[elecnt] = e->pz();     
-     ElePt[elecnt] = e->pt();
-     EleEta[elecnt] = e->eta();      
-     ElePhi[elecnt] = e->phi(); 
-     ++ngoodelectrons;
-                }//ID-function
-   }  
+    EleE[elecnt]   = e->energy();
+    ElePx[elecnt]  = e->px();
+    ElePy[elecnt]  = e->py();
+    ElePz[elecnt]  = e->pz();     
+    ElePt[elecnt]  = e->pt();
+    EleEta[elecnt] = e->eta();      
+    ElePhi[elecnt] = e->phi();
+    EleSupEta[elecnt] = e->superCluster()->eta();
+    ElePassConvVeto[elecnt] = e->passConversionVeto();
+    EleChargeHadIso[elecnt] = e->chargedHadronIso();
+    EleNeutralHadIso[elecnt] = e->neutralHadronIso();
+    ElePhotonIso[elecnt] = e->photonIso();
+    EleUsrIso[elecnt] = e->userIsolation("User1Iso");
+    EleEt[elecnt] = e->et();
+    EleVtx[elecnt] = vtx; 
+    EleRelIsoR03DB[elecnt] = pfIso.sumChargedHadronPt+std::max(0.0,pfIso.sumNeutralHadronEt+pfIso.sumPhotonEt-0.5*pfIso.sumPUPt)/e->pt(); 
+    EleAbsDxy[elecnt] = fabs(e->gsfTrack()->dxy(vertex_.position()));
+    EleVetoId[elecnt] = (*veto_id_decisions)[elPtr];
+    EleMediumId[elecnt] = (*medium_id_decisions)[elPtr];
+    EleNumOfHits[elecnt] = e->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
+  ++ngoodelectrons;
+    }  
    // ecal information
    
    // lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,ebRecHitsToken_,eeRecHitsToken_) );
 
    // get ecal barrel recHits for spike rejection
-   edm::Handle<EcalRecHitCollection> recHitsEB_h;
-   iEvent.getByLabel(ebRecHitsLabel_, recHitsEB_h );
-   // const EcalRecHitCollection * recHitsEB = 0;
-   // if ( ! recHitsEB_h.isValid() ) {
-   //   LogError("ExoDiPhotonAnalyzer") << " ECAL Barrel RecHit Collection not available !"; return;
-   // } else {
-   //   recHitsEB = recHitsEB_h.product();
-   // }
+  // edm::Handle<EcalRecHitCollection> recHitsEB_h;
+  // iEvent.getByLabel(ebRecHitsLabel_, recHitsEB_h );
+        
          
    //PAT photons     
-   for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){
-if(photonid(ph)){
-     /*
-     double e4 = 	lazyTools_->eTop(*((*ph).superCluster()->seed())) 	+ 
-     			lazyTools_->eBottom(*((*ph).superCluster()->seed())) 	+
-     			lazyTools_->eLeft(*((*ph).superCluster()->seed()))	+
-     			lazyTools_->eRight(*((*ph).superCluster()->seed()))	;
-     			
-     double eMax = ph->maxEnergyXtal();  
-     double spikeSelector = 1-e4/eMax;
-      
-     if(spikeSelector > 0.95 && fabs(ph->eta())<1.560) {
-       std::cout <<"Swiss cross variable "<<spikeSelector<<" run "<<runno<<" event "<<evtno<<std::endl;
-       std::cout <<"This photon candidate is an ECAL spike identified by Swiss Cross algorithm. Removing it from photons"<<std::endl;
-       continue;
-     }
-     */
+  for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){
+  if (ph->pt()<20 || abs(ph->eta()) > 2.4) continue; 
+  
+  //smart pointer to pat::Photon
+  const edm::Ptr<pat::Photon> phoPtr(phoHandle, ph - phoHandle->begin()); 
+  ++phcnt;
 
-     if (abs(ph->eta()) > 2.4) continue;
-          	
-     //If not a spike, increment # photons
-     ++ngoodphotons;
-     
-     pBH += ph->p4();
-     ST += ph->et();
-     sumPx2 += ph->px()*ph->px();
-     sumPy2 += ph->py()*ph->py();
-     sumPxPy += ph->px()*ph->py();
-     if (ph->pt() > leadingPhPt) leadingPhPt = ph->pt();
-     
-     leadingPhotons.push_back(ph->pt());
-     leadingObjects.push_back(ph->pt());      
-     
-     pPh += ph->p4();    
-     pObj += ph->p4();      
-     
-     PhE[ngoodphotons-1] = ph->energy();
-     PhPx[ngoodphotons-1] = ph->px();
-     PhPy[ngoodphotons-1] = ph->py();
-     PhPz[ngoodphotons-1] = ph->pz();
-     PhPt[ngoodphotons-1] = ph->pt();
-     PhEta[ngoodphotons-1] = ph->eta();      
-     PhPhi[ngoodphotons-1] = ph->phi();
-     //PhSwissCross[ngoodphotons-1] = spikeSelector;
-     }//ID-function
-   }
-   for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
-     
-     // Muons don't have an innerTrack() method in miniAOD?
-     // muon_d0 = fabs(mu->innerTrack()->dxy(bs));
-     // if (fabs(mu->innerTrack()->dxy(bs))>0.2) continue;
+  //isoChargedHadrons, isoNeutralHadrons, isoPhotons with effective area corrections
+  int etaBin = 0; 
+  while ( etaBin < EffectiveAreas::nEtaBins-1 && abs( ph->superCluster()->eta() ) > EffectiveAreas::etaBinLimits[etaBin+1] )
+    { ++etaBin; };
+    
+    double isoPhotonsWithEA = std::max((float)0.0,(*phoPhotonIsolationMap)[phoPtr]
+            -rho_*EffectiveAreas::areaPhotons[etaBin]);
+    
+    double isoNeutralHadronsWithEA = std::max((float)0.0, (*phoNeutralHadronIsolationMap)[phoPtr]
+            -rho_*EffectiveAreas::areaNeutralHadrons[etaBin]);    
+    
+    double isoChargedHadronsWithEA = std::max((float)0.0,(*phoChargedIsolationMap)[phoPtr] 
+            -rho_*EffectiveAreas::areaChargedHadrons[etaBin]);
 
-     // If a good muon (config muon ID + dxy), increment # muons
-if(muonid(mu)){
+    if(DEBUG_){  
+    cout <<"Pho["<<phcnt<<"]" <<
+    " | n_ph = "<< photons.size()<<
+    " | pt = "<< ph->pt()<<
+    " | eta = "<< fabs(ph->superCluster()->eta())<<
+    " | phi = " << ph->superCluster()->phi() <<
+    " | pix_seed = "<< ph->hasPixelSeed()<<
+    " | H/E = "<< ph->hadTowOverEm()<<
+    " | Phr9 = "<< ph->userFloat("r9_NoZS") <<
+    " | full5x5_sigmaIetaIeta = "<<(*full5x5SigmaIEtaIEtaMap)[phoPtr]<<
+    " | passElectronVeto = "<< ph->passElectronVeto()<<
+    " | isoChargedHadrons = "<< (*phoChargedIsolationMap)[phoPtr] <<
+    " | isoChargedHadronsWithEA = "<< isoChargedHadronsWithEA<<
+    " | isoNeutralHadrons = " << (*phoNeutralHadronIsolationMap)[phoPtr]<<
+    " | isoNeutralHadronsWithEA = "<< isoNeutralHadronsWithEA<<
+    " | isoPhotons = "<< (*phoPhotonIsolationMap)[phoPtr] <<
+    " | isoPhotonsWithEA = "<< isoPhotonsWithEA<<
+    " | "<<endl;
+    }
+    
+  //If not a spike, increment # photons
+  ++ngoodphotons;
 
-     ++ngoodmuons;
+  pBH += ph->p4();
+  ST += ph->et();
+  sumPx2 += ph->px()*ph->px();
+  sumPy2 += ph->py()*ph->py();
+  sumPxPy += ph->px()*ph->py();
+  if (ph->pt() > leadingPhPt) leadingPhPt = ph->pt();
+
+  leadingPhotons.push_back(ph->pt());
+  leadingObjects.push_back(ph->pt());      
+
+  pPh += ph->p4();    
+  pObj += ph->p4();      
+
+  PhE[ngoodphotons-1] = ph->energy();
+  PhPx[ngoodphotons-1] = ph->px();
+  PhPy[ngoodphotons-1] = ph->py();
+  PhPz[ngoodphotons-1] = ph->pz();
+  PhPt[ngoodphotons-1] = ph->pt();
+  PhEta[ngoodphotons-1] = ph->eta();      
+  PhSupEta[ngoodphotons-1] = ph->superCluster()->eta();      
+  PhPhi[ngoodphotons-1] = ph->phi();
+  PhHadoverEM[ngoodphotons-1] = ph->hadTowOverEm();
+  PhHasPixelSeed[ngoodphotons-1] = ph->hasPixelSeed();
+  Ph5x5sigmaIetaIeta[ngoodphotons-1] = (*full5x5SigmaIEtaIEtaMap)[phoPtr];
+  Phr9[ngoodphotons-1] = ph->userFloat("r9_NoZS");
+  
+  //isoChargedHadrons, isoNeutralHadrons, isoPhotons without effective area corrections
+  PhIsoChargedHadrons[ngoodphotons-1] = (*phoChargedIsolationMap)[phoPtr];
+  PhIsoNeutralHadrons[ngoodphotons-1] = (*phoNeutralHadronIsolationMap)[phoPtr];
+  PhIsoPhotons[ngoodphotons-1] = (*phoPhotonIsolationMap)[phoPtr];
+  
+  PhIsoChargedHadronsEA[ngoodphotons-1] = std::max((float)0.0,(*phoChargedIsolationMap)[phoPtr]
+              -rho_*EffectiveAreas::areaChargedHadrons[etaBin]);
+
+  PhIsoNeutralHadronsEA[ngoodphotons-1] = std::max((float)0.0, (*phoNeutralHadronIsolationMap)[phoPtr]
+              -rho_*EffectiveAreas::areaNeutralHadrons[etaBin]);
+
+  PhIsoPhotonsEA[ngoodphotons-1] = std::max((float)0.0,(*phoPhotonIsolationMap)[phoPtr]
+              -rho_*EffectiveAreas::areaPhotons[etaBin]);
+  //PhSwissCross[ngoodphotons-1] = spikeSelector;
+}
+  
+  for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
+    if(mu->pt()<20 || abs(mu->eta())>2.4 || !mu->isGlobalMuon() || !mu->isPFMuon())continue;
+    ++mucnt; 
+    // Rel-isolation with delta beta correction
+    double abs_iso = mu->pfIsolationR04().sumChargedHadronPt+ std::max(0.,mu->pfIsolationR04().sumNeutralHadronEt +
+    mu->pfIsolationR04().sumPhotonEt - 0.5*mu->pfIsolationR04().sumPUPt);
+    Reliso_mu = abs_iso/mu->pt();
+    if(DEBUG_){
+      cout <<"Mun["<<mucnt<<"]" <<
+      " | n_mu = "<< muons.size()<<
+      " | pt = "<<mu->pt()<<
+      " | eta = "<<fabs(mu->eta())<<
+      " | fabs(vtx_dxy) = "<<fabs(mu->globalTrack()->dxy(vertex_.position()))<<
+      " | reliso = "<<Reliso_mu<<
+      " | "<<endl;
+    }
+    ++ngoodmuons;
      
-     pBH += mu->p4();
-     ST += mu->et();
-     sumPx2 += mu->px()*mu->px();
-     sumPy2 += mu->py()*mu->py();
-     sumPxPy += mu->px()*mu->py();
-     if (mu->pt() > leadingMuPt) leadingMuPt = mu->pt();
-     
-     leadingMuons.push_back(mu->pt());
-     leadingLeptons.push_back(mu->pt());
-     leadingObjects.push_back(mu->pt());
-     
-     pMu += mu->p4();
-     pLep += mu->p4();      
-     pObj += mu->p4(); 
-     
-     MuE[ngoodmuons-1] = mu->energy();
-     MuPx[ngoodmuons-1] = mu->px();
-     MuPy[ngoodmuons-1] = mu->py();
-     MuPz[ngoodmuons-1] = mu->pz(); 
-     MuPt[ngoodmuons-1] = mu->pt();
-     MuEta[ngoodmuons-1] = mu->eta();      
-     MuPhi[ngoodmuons-1] = mu->phi(); 
-     MuDxy[ngoodmuons-1] = 0.; //fabs(mu->innerTrack()->dxy(bs));
-       }//ID-funtion
-   }
+    pBH += mu->p4();
+    ST += mu->et();
+    sumPx2 += mu->px()*mu->px();
+    sumPy2 += mu->py()*mu->py();
+    sumPxPy += mu->px()*mu->py();
+    if (mu->pt() > leadingMuPt) leadingMuPt = mu->pt();
+
+    leadingMuons.push_back(mu->pt());
+    leadingLeptons.push_back(mu->pt());
+    leadingObjects.push_back(mu->pt());
+
+    pMu += mu->p4();
+    pLep += mu->p4();      
+    pObj += mu->p4(); 
+
+    MuE[ngoodmuons-1] = mu->energy();
+    MuPx[ngoodmuons-1] = mu->px();
+    MuPy[ngoodmuons-1] = mu->py();
+    MuPz[ngoodmuons-1] = mu->pz(); 
+    MuPt[ngoodmuons-1] = mu->pt();
+    MuEta[ngoodmuons-1] = mu->eta();      
+    MuPhi[ngoodmuons-1] = mu->phi(); 
+    MuAbsDxy[ngoodmuons-1] = fabs(mu->globalTrack()->dxy(vertex_.position())); 
+    MuNormChi2[ngoodmuons-1] = mu->normChi2();
+    MuTrkLayers[ngoodmuons-1] = mu->track()->hitPattern().trackerLayersWithMeasurement();
+    MuValidHits[ngoodmuons-1] = mu->globalTrack()->hitPattern().numberOfValidMuonHits();
+    MuDz[ngoodmuons-1] = fabs(mu->vertex().z()-(vertex_.z()));
+    MuPixelHits[ngoodmuons-1] = mu->innerTrack()->hitPattern().numberOfValidPixelHits();
+    MuMatchedStations[ngoodmuons-1] = mu->numberOfMatchedStations();
+    MuRelIsoR04DB[ngoodmuons-1] = (mu->pfIsolationR04().sumChargedHadronPt + std::max(0.,mu->pfIsolationR04().sumNeutralHadronEt + mu->pfIsolationR04().sumPhotonEt - 0.5*mu->pfIsolationR04().sumPUPt))/mu->pt(); 
+   
+    MuRelIsoR03DB[ngoodmuons-1] = (mu->pfIsolationR03().sumChargedHadronPt + std::max(0.,mu->pfIsolationR03().sumNeutralHadronEt + mu->pfIsolationR03().sumPhotonEt - 0.5*mu->pfIsolationR03().sumPUPt))/mu->pt(); 
+}
    
    for (int i=0;i<25;++i) {
      if (i>=ngoodjets) {
@@ -644,7 +840,11 @@ if(muonid(mu)){
        JetPt[i]=0.;
        JetEta[i]=99.;
        JetPhi[i]=99.;
-       // JetEMF[i]=99.;
+       JetNumOfDaughters[i]=99.;
+       JetNeutralHadEnergyFrac[i]=99.;
+       JetChargeHadEnergyFrac[i] = 99.;
+       JetNeutralEmEnergyFrac[i]=99.;
+       JetChargeEmEnergyFrac[i]=99.;
      }
      if (i>=ngoodelectrons) {
        EleE[i]=0.;
@@ -654,6 +854,19 @@ if(muonid(mu)){
        ElePt[i]=0.;
        EleEta[i]=99.;
        ElePhi[i]=99.;
+       EleSupEta[i] = 99.;
+       EleRelIsoR03DB[i]=99.;
+       EleAbsDxy[i]=99.;
+       EleVetoId[i]=99.;
+       EleMediumId[i]=99.;
+       EleNumOfHits[i]=99.;
+       ElePassConvVeto[i] = 99.;
+       EleChargeHadIso[i] = 0.;
+       EleNeutralHadIso[i] = 0.;
+       ElePhotonIso[i] = 0.;
+       EleUsrIso[i] = 0.;
+       EleEt[i] = 0.;
+       EleVtx[i] = 0.;
      }
      if (i>=ngoodphotons) {
        PhE[i]=0.;
@@ -662,7 +875,21 @@ if(muonid(mu)){
        PhPz[i]=0.;
        PhPt[i]=0.;
        PhEta[i]=99.;
+       PhSupEta[i]=99.;
        PhPhi[i]=99.;
+       PhHadoverEM[i]=99.;
+       PhHasPixelSeed[i]=99.;
+       Ph5x5sigmaIetaIeta[i]=99.;
+       Phr9[i]=99.;
+       
+       PhIsoChargedHadrons[i]=99.;
+       PhIsoNeutralHadrons[i]=99.;
+       PhIsoPhotons[i]=99.;
+       
+       PhIsoChargedHadronsEA[i]=99.;
+       PhIsoNeutralHadronsEA[i]=99.;
+       PhIsoPhotonsEA[i]=99.;
+       
        PhSwissCross[i]=99.;
      }       
      if (i>=ngoodmuons) {
@@ -673,7 +900,15 @@ if(muonid(mu)){
        MuPt[i]=0.;
        MuEta[i]=99.;
        MuPhi[i]=99.;
-       MuDxy[i]=99.;
+       MuAbsDxy[i]=99.;
+       MuNormChi2[i]=99.;
+       MuTrkLayers[i]=99.;
+       MuValidHits[i]=99.;
+       MuDz[i]=99.;
+       MuPixelHits[i]=99.;
+       MuMatchedStations[i]=99.;
+       MuRelIsoR04DB[i]=99.;
+       MuRelIsoR03DB[i]=99.;
      }         
    }
    
@@ -830,7 +1065,12 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("JetPt",&JetPt,"JetPt[NJets]");
   tree->Branch("JetEta",&JetEta,"JetEta[NJets]");
   tree->Branch("JetPhi",&JetPhi,"JetPhi[NJets]");
-  // tree->Branch("JetEMF",&JetEMF,"JetEMF[NJets]");  
+  tree->Branch("JetNumOfDaughters",&JetNumOfDaughters,"JetNumOfDaughters[NJets]");
+  tree->Branch("JetNeutralHadEnergyFrac",&JetNeutralHadEnergyFrac,"JetNeutralHadEnergyFrac[NJets]");
+  tree->Branch("JetChargeHadEnergyFrac", &JetChargeHadEnergyFrac, "JetChargeHadEnergyFrac[NJets]");
+  tree->Branch("JetNeutralEmEnergyFrac",&JetNeutralEmEnergyFrac,"JetNeutralEmEnergyFrac[NJets]");
+  tree->Branch("JetChargeEmEnergyFrac",&JetChargeEmEnergyFrac,"JetChargeEmEnergyFrac[NJets]");
+  tree->Branch("JetChargeMult", &JetChargeMult, "JetChargeMult[NJets]");
 
   tree->Branch("EleE",&EleE,"EleE[25]");
   tree->Branch("ElePx",&ElePx,"ElePx[25]");
@@ -839,15 +1079,41 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("ElePt",&ElePt,"ElePt[25]");
   tree->Branch("EleEta",&EleEta,"EleEta[25]");
   tree->Branch("ElePhi",&ElePhi,"ElePhi[25]");
-    
+  tree->Branch("EleSupEta", &EleSupEta, "EleSupEta[25]");
+  tree->Branch("EleRelIsoR03DB",&EleRelIsoR03DB,"EleRelIsoR03DB[25]");
+  tree->Branch("EleAbsDxy",&EleAbsDxy,"EleAbsDxy[25]");
+  tree->Branch("EleVetoId",&EleVetoId,"EleVetoId[25]");
+  tree->Branch("EleMediumId",&EleMediumId,"EleMediumId[25]");
+  tree->Branch("EleNumOfHits",&EleNumOfHits,"EleNumOfHits[25]");
+  tree->Branch("ElePassConvVeto", &ElePassConvVeto, "ElePassConvVeto[25]");
+  tree->Branch("EleChargeHadIso", &EleChargeHadIso, "EleChargeHadIso[25]");
+  tree->Branch("EleNeutralHadIso", &EleNeutralHadIso, "EleNeutralHadIso[25]");
+  tree->Branch("ElePhotonIso", &ElePhotonIso, "ElePhotonIso[25]");
+  tree->Branch("EleUsrIso", &EleUsrIso, "EleUsrIso[25]");
+  tree->Branch("EleEt", &EleEt, "EleEt[25]");
+  tree->Branch("EleVtx", &EleVtx, "EleVtx[25]"); 
+ 
   tree->Branch("PhE",&PhE,"PhE[25]");
   tree->Branch("PhPx",&PhPx,"PhPx[25]");
   tree->Branch("PhPy",&PhPy,"PhPy[25]");
   tree->Branch("PhPz",&PhPz,"PhPz[25]");
   tree->Branch("PhPt",&PhPt,"PhPt[25]");
   tree->Branch("PhEta",&PhEta,"PhEta[25]");
+  tree->Branch("PhSupEta",&PhSupEta,"PhSupEta[25]");
   tree->Branch("PhPhi",&PhPhi,"PhPhi[25]");
   tree->Branch("PhSwissCross",&PhSwissCross,"PhSwissCross[25]");  
+  tree->Branch("PhHadoverEM",&PhHadoverEM,"PhHadoverEM[25]");
+  tree->Branch("PhHasPixelSeed",&PhHasPixelSeed,"PhHasPixelSeed[25]");
+  tree->Branch("Ph5x5sigmaIetaIeta",&Ph5x5sigmaIetaIeta,"Ph5x5sigmaIetaIeta[25]");
+  tree->Branch("Phr9",&Phr9,"Phr9[25]");
+  
+  tree->Branch("PhIsoChargedHadrons",&PhIsoChargedHadrons,"PhIsoChargedHadrons[25]");
+  tree->Branch("PhIsoNeutralHadrons",&PhIsoNeutralHadrons,"PhIsoNeutralHadrons[25]");
+  tree->Branch("PhIsoPhotons",&PhIsoPhotons,"PhIsoPhotons[25]");
+  
+  tree->Branch("PhIsoChargedHadronsEA",&PhIsoChargedHadronsEA,"PhIsoChargedHadronsEA[25]");
+  tree->Branch("PhIsoNeutralHadronsEA",&PhIsoNeutralHadronsEA,"PhIsoNeutralHadronsEA[25]");
+  tree->Branch("PhIsoPhotonsEA",&PhIsoPhotonsEA,"PhIsoPhotonsEA[25]");
 
   tree->Branch("MuE",&MuE,"MuE[25]");
   tree->Branch("MuPx",&MuPx,"MuPx[25]");
@@ -856,7 +1122,15 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("MuPt",&MuPt,"MuPt[25]");
   tree->Branch("MuEta",&MuEta,"MuEta[25]");
   tree->Branch("MuPhi",&MuPhi,"MuPhi[25]");
-  tree->Branch("MuDxy",&MuDxy,"MuDxy[25]");  
+  tree->Branch("MuAbsDxy",&MuAbsDxy,"MuAbsDxy[25]");  
+  tree->Branch("MuNormChi2",&MuNormChi2,"MuNormChi2[25]");  
+  tree->Branch("MuTrkLayers",&MuTrkLayers,"MuTrkLayers[25]");  
+  tree->Branch("MuValidHits",&MuValidHits,"MuValidHits[25]");  
+  tree->Branch("MuDz",&MuDz,"MuDz[25]");  
+  tree->Branch("MuPixelHits",&MuPixelHits,"MuPixelHits[25]");  
+  tree->Branch("MuMatchedStations",&MuMatchedStations,"MuMatchedStations[25]");  
+  tree->Branch("MuRelIsoR04DB",&MuRelIsoR04DB,"MuRelIsoR04DB[25]");  
+  tree->Branch("MuRelIsoR03DB",&MuRelIsoR03DB,"MuRelIsoR03DB[25]");  
     
   tree->Branch("ST",&ST,"ST/F");
   tree->Branch("mBH",&mBH,"mBH/F");
@@ -956,71 +1230,6 @@ bool BHAnalyzerTLBSM::check(std::string process, std::string pCheck) {
   
   return value;
 }
-
-//************************
-//       Object ID       *
-//************************
-//JET ID (Medium criteria https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID) 
-//muon fraction is not appplied.
-bool BHAnalyzerTLBSM::jetid(const edm::View<pat::Jet>::const_iterator &jet_itr){
-if(
-jet_itr->pt() > 20 && 
-abs(jet_itr->eta()) < 2.6 && 
-jet_itr->numberOfDaughters() > 1 && 
-jet_itr->neutralHadronEnergyFraction() < 0.95 && 
-jet_itr->neutralEmEnergyFraction() < 0.95 && 
-jet_itr->chargedEmEnergyFraction() < 0.9  && 
-(jet_itr->chargedEmEnergyFraction() < 0.99 || abs(jet_itr->eta()) >= 2.4) && 
-(jet_itr->chargedHadronEnergyFraction() > 0. || abs(jet_itr->eta()) >= 2.4) && 
-(jet_itr->chargedMultiplicity() > 0 || abs(jet_itr->eta()) >= 2.4)
-) return true;
-else
-  return false;	
-}
-//Electron ID 
-// (https://twiki.cern.ch/twiki/bin/view/CMS/TopEGM)
-// e->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 0, doestn't work for MiniAOD 
-bool BHAnalyzerTLBSM::electronid(const edm::View<pat::Electron>::const_iterator &e_itr, double pvtx){
-if( 
-e_itr->pt() > 20. && 
-pvtx < 0.04 &&
-abs(e_itr->eta()) < 2.5  && 
-abs(e_itr->superCluster()->eta())<1.442 && 
-abs(e_itr->superCluster()->eta())>1.5660 &&
-e_itr->electronID("cutBasedElectronID-CSA14-PU20bx25-V0-standalone-medium") > 0.5 && 
-e_itr->passConversionVeto() && 
-(e_itr->chargedHadronIso()+max(0.,e_itr->neutralHadronIso()+e_itr->photonIso()-1.0*e_itr->userIsolation("User1Iso")))/e_itr->et() < 0.1
-)return true;
-else
-return false;
-}
-//Photon ID
-// Didn't find good link to implement in the code
-bool BHAnalyzerTLBSM::photonid(const edm::View<pat::Photon>::const_iterator &ph_itr){
-if( 
-ph_itr->pt() > 20. && 
-abs(ph_itr->eta()) < 2.5  && 
-abs(ph_itr->superCluster()->eta())<1.442 && 
-abs(ph_itr->superCluster()->eta())>1.5660  
-)return true;
-else
-return false;
-}
-
-//Muon ID
-//(https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO)
-bool BHAnalyzerTLBSM::muonid(const edm::View<pat::Muon>::const_iterator &mu_itr){
- if(
-mu_itr->pt() > 20. && 
-mu_itr->isPFMuon() && 
-(mu_itr->isGlobalMuon() || mu_itr->isTrackerMuon()) && 
-(mu_itr->chargedHadronIso()+max(0.,mu_itr->neutralHadronIso()+mu_itr->photonIso()-0.50*mu_itr->puChargedHadronIso()))/mu_itr->pt() < 0.1 &&
-abs(mu_itr->eta()) < 2.1  
-)return true;
-else
-return false;
-}
-//**********End of IDs Bool************
 
 
 // ------------ method called once each job just after ending the event loop  ------------
