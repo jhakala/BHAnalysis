@@ -40,6 +40,16 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
+
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
+#include "DataFormats/EgammaCandidates/interface/Conversion.h"
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/JetID.h"
@@ -66,6 +76,10 @@
 
 #include "DataFormats/Common/interface/ValueMap.h"
 
+
+
+
+
 #include <map>
 #include <vector>
 #include <string>
@@ -86,8 +100,6 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
    public:
       explicit BHAnalyzerTLBSM(const edm::ParameterSet&);
       ~BHAnalyzerTLBSM();
-
-
    private:
      virtual void beginJob();
       virtual void analyze(const edm::Event&, const edm::EventSetup&);
@@ -104,27 +116,21 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       std::map<std::string, unsigned int> prescale_counter; 
       std::map<std::string, unsigned int> trigger_indices;
 
-      edm::InputTag eleLabel_;
       edm::InputTag muoLabel_;
       edm::InputTag jetLabel_;
       edm::InputTag tauLabel_;
       edm::InputTag metLabel_;
-      edm::InputTag phoLabel_;
       edm::InputTag rechitBLabel_;
       edm::InputTag rechitELabel_;
       edm::InputTag pvSrc_;
       edm::InputTag triggerLabel_;
       edm::InputTag rhoLabel_;
       
-      // tools for clusters
 
-      // std::auto_ptr<EcalClusterLazyTools> lazyTools_;
               
       bool isMCBH;
       bool DEBUG_;
 
-      //edm::InputTag ebRecHitsLabel_;
-      //edm::InputTag eeRecHitsLabel_;
 
       edm::EDGetTokenT<EcalRecHitCollection> ebRecHitsToken_;
       edm::EDGetTokenT<EcalRecHitCollection> eeRecHitsToken_;
@@ -133,16 +139,22 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
  
       std::vector< std::map<std::string,TH1*> > histos_; 
       std::vector<std::string> cutNames_;
-      //TH1F* h_norm;
+     
+      edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_; 
+      edm::EDGetToken eleLabelToken_;
+      edm::EDGetTokenT<reco::VertexCollection> vtxMiniAODToken_;
+      edm::EDGetTokenT<reco::ConversionCollection> conversionsMiniAODToken_;
       
-      edm::EDGetTokenT<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMapToken_; 
-      edm::EDGetTokenT<edm::ValueMap<float> > phoChargedIsolationToken_; 
-      edm::EDGetTokenT<edm::ValueMap<float> > phoNeutralHadronIsolationToken_; 
-      edm::EDGetTokenT<edm::ValueMap<float> > phoPhotonIsolationToken_; 
-
-      edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
-      edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
-
+      //Electron Decisions
+      edm::EDGetTokenT<edm::ValueMap<bool> > eleVetoIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > eleLooseIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
+      //Photon Decisions
+      edm::EDGetToken phoLabelToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > phoLooseIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > phoMediumIdMapToken_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > phoTightIdMapToken_; 
       //TTree
       TTree* tree;
       float JetE[25];
@@ -150,66 +162,55 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float JetPy[25];
       float JetPz[25];
       float JetPt[25];
+      float JetEt[25];
       float JetEta[25];
       float JetPhi[25];      
       int   JetNumOfDaughters[25];      
+      int   JetChargeMult[25]; 
       float JetNeutralHadEnergyFrac[25]; 
       float JetChargeHadEnergyFrac[25];     
       float JetNeutralEmEnergyFrac[25];      
       float JetChargeEmEnergyFrac[25];      
-      float JetChargeMult[25]; 
-      // JetEMF was made from emEnergyFraction()--this does not work with our PAT jets
-      // float JetEMF[25];
       
       float EleE[25];
       float ElePx[25];
       float ElePy[25];
       float ElePz[25];
       float ElePt[25];
+      float EleEt[25];
       float EleEta[25];
       float ElePhi[25]; 
       float EleSupEta[25];     
       float EleRelIsoR03DB[25];      
       float EleAbsDxy[25];      
       float EleNumOfHits[25];      
-      float EleChargeHadIso[25];
-      float EleNeutralHadIso[25];
-      float ElePhotonIso[25];
-      float EleUsrIso[25];
-      float EleEt[25];
-      float EleVtx[25];
+      float EleDz[25];
       int   EleVetoId[25];      
+      int   EleLooseId[25];      
       int   EleMediumId[25];      
+      int   EleTightId[25];      
       int   ElePassConvVeto[25];
-
+      int   PhLooseId[25];      
+      int   PhMediumId[25];      
+      int   PhTightId[25];      
 
       float PhE[25];
       float PhPx[25];
       float PhPy[25];
       float PhPz[25];
       float PhPt[25];
+      float PhEt[25];
       float PhEta[25];
       float PhSupEta[25];
+      float PhSupPhi[25];
       float PhPhi[25];
-      float PhSwissCross[25];      
-      float PhHadoverEM[25];
-      float PhHasPixelSeed[25];
-      float Ph5x5sigmaIetaIeta[25];
-      float Phr9[25];
-      
-      double PhIsoChargedHadrons[25];
-      double PhIsoNeutralHadrons[25];
-      double PhIsoPhotons[25];
-      
-      double PhIsoChargedHadronsEA[25];
-      double PhIsoNeutralHadronsEA[25];
-      double PhIsoPhotonsEA[25];
       
       float MuE[25];
       float MuPx[25];
       float MuPy[25];
       float MuPz[25];
       float MuPt[25];
+      float MuEt[25];
       float MuEta[25];
       float MuPhi[25];    
       float MuAbsDxy[25];  
@@ -230,6 +231,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float MetPy;
       float MetPz;
       float MetPt;      
+      float MetEt;      
       float MetPhi;      
       float Sphericity;
       float JetArr[4];      
@@ -255,6 +257,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float ResJetPhi;      
       float ResJetM;
       float ResJetPt;
+      float ResJetEt;
       float ResEleEta;
       float ResElePhi;      
       float ResEleM;
@@ -285,24 +288,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   float LeadingArr[4];    
 
   //HLT info (Jets and MET)
-  bool firedHLT_L1Jet6U;
-  bool firedHLT_L1Jet10U;
-  bool firedHLT_Jet15U;
-  bool firedHLT_Jet30U;
-  bool firedHLT_Jet50U;
-  bool firedHLT_DiJetAve15U_8E29;
-  bool firedHLT_DiJetAve30U_8E29;
-  bool firedHLT_MET45;
-  bool firedHLT_MET100;
-  bool firedHLT_HT100U;
-  bool firedHLT_HT140U;
-  bool firedHLT_HT140U_Eta3_v1;
-  bool firedHLT_HT160U_v1;
-  bool firedHLT_HT200U; 
-  bool firedHLT_HT200U_v1;     
-  bool firedHLT_FwdJet20U;
-  bool firedHLT_QuadJet15U;
-  bool firedHLT_L1MET20;
+  bool firedHLT_PFHT800_v1;
+  bool firedHLT_PFHT400_v1;
   
   double Reliso_el;
   double Reliso_mu;
@@ -312,16 +299,6 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 
   };
 
-  // Effective areas for photons from Savvas's slide for phys14 PU20bx25, described here:
-  // https://indico.cern.ch/event/367861/contribution/3/material/slides/0.pdf
-  namespace EffectiveAreas {
-  const int nEtaBins = 7;
-  const float etaBinLimits[nEtaBins+1] = {0.0, 1.0, 1.479, 2.0, 2.2, 2.3, 2.4, 2.5};
-
-  const float areaPhotons[nEtaBins] = {0.0894361, 0.0750406, 0.0422692, 0.0561305, 0.0881777, 0.114391, 0.168394};
-  const float areaNeutralHadrons[nEtaBins] = {0.00491696, 0.0108215, 0.00185819, 0.0036691, 0.00619475, 0.0130409, 0.169902};
-  const float areaChargedHadrons[nEtaBins] = {0.00885603, 0.00615045, 0.00861475, 0.00412423, 0.0113191, 0.00846383, 0.0038625};
-  }
 
   // constants, enums and typedefs
 
@@ -329,29 +306,31 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 
   // constructors and destructor
   BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
-  eleLabel_(iConfig.getUntrackedParameter<edm::InputTag>("electronTag")),
   muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
   jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
   tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
   metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
-  phoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("photonTag")),
   pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
   rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
   isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
   DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
-  //eeRecHitsLabel_(iConfig.getUntrackedParameter<edm::InputTag>("eeRecHitTag")),
-  //ebRecHitsToken_(consumes<EcalRecHitCollection>(ebRecHitsLabel_)),
-  //eeRecHitsToken_(consumes<EcalRecHitCollection>(eeRecHitsLabel_)),
-  full5x5SigmaIEtaIEtaMapToken_(consumes <edm::ValueMap<float> > (iConfig.getParameter<edm::InputTag>("full5x5SigmaIEtaIEtaMap"))),
-  phoChargedIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoChargedIsolation"))),
-phoNeutralHadronIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoNeutralHadronIsolation"))),
-  phoPhotonIsolationToken_(consumes <edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("phoPhotonIsolation"))),
-  electronVetoIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"))),
-  electronMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap")))
+  
+  eleVetoIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap"))),
+  eleLooseIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap"))),
+  eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
+  eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
+  phoLooseIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoLooseIdMap"))),
+  phoMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoMediumIdMap"))),
+  phoTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoTightIdMap")))
   {
    //now do what ever initialization is needed
-  }
+   beamSpotToken_            = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"));
+   eleLabelToken_            = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electronTag"));
+   vtxMiniAODToken_          = mayConsume<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("verticesMiniAOD"));
+   conversionsMiniAODToken_  = mayConsume< reco::ConversionCollection >(iConfig.getParameter<edm::InputTag>("conversionsMiniAOD"));
+   phoLabelToken_            = mayConsume<edm::View<reco::Photon> >(iConfig.getParameter<edm::InputTag>("photonTag"));
+ }
 
 
 BHAnalyzerTLBSM::~BHAnalyzerTLBSM()
@@ -382,59 +361,66 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // first: get all objects from the event.
    //{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
   // All PF Candidate for alternate isolation
+  
+   // Get the beam spot
+   edm::Handle<reco::BeamSpot> theBeamSpot;
+   iEvent.getByToken(beamSpotToken_,theBeamSpot);  
+
+   edm::Handle<edm::View<reco::GsfElectron> > electrons;
+   iEvent.getByToken(eleLabelToken_, electrons);
+  
+  
+   //Get the conversions collection
+   edm::Handle<reco::ConversionCollection> conversions;
+   iEvent.getByToken(conversionsMiniAODToken_, conversions);	
+
+   // Get the electron ID data from the event stream.
+   //   // Note: this implies that the VID ID modules have been run upstream.
+   // If you need more info, check with the EGM group.
+   edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+   iEvent.getByToken(eleVetoIdMapToken_ ,veto_id_decisions);
    
+   edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+   iEvent.getByToken(eleLooseIdMapToken_ ,loose_id_decisions);
+
+   edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+   iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
+
+   edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+   iEvent.getByToken(eleTightIdMapToken_ ,tight_id_decisions);
+
+  edm::Handle<edm::ValueMap<bool> > loose_id_decisions_ph;
+  iEvent.getByToken(phoLooseIdMapToken_ ,loose_id_decisions_ph);
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions_ph;
+  iEvent.getByToken(phoMediumIdMapToken_,medium_id_decisions_ph);
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions_ph;
+  iEvent.getByToken(phoTightIdMapToken_ ,tight_id_decisions_ph);
+
    edm::Handle<double> rhoHandle;
    iEvent.getByLabel(rhoLabel_,rhoHandle);
    
    if(rhoHandle.isValid()) {
    rho_ = *(rhoHandle.product());
-   //std::cout<<"rho value = "<<*(rhoHandle.product())<<std::endl;
    }
-   // Get the full5x5 sieie map
-   edm::Handle<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMap;
-   iEvent.getByToken(full5x5SigmaIEtaIEtaMapToken_, full5x5SigmaIEtaIEtaMap);
-
-  // Get the isolation maps
-  edm::Handle<edm::ValueMap<float> > phoChargedIsolationMap;
-  iEvent.getByToken(phoChargedIsolationToken_, phoChargedIsolationMap);
-  
-  edm::Handle<edm::ValueMap<float> > phoNeutralHadronIsolationMap;
-  iEvent.getByToken(phoNeutralHadronIsolationToken_, phoNeutralHadronIsolationMap);
-  
-  edm::Handle<edm::ValueMap<float> > phoPhotonIsolationMap;
-  iEvent.getByToken(phoPhotonIsolationToken_, phoPhotonIsolationMap);
-
-  // Get the electron ID data from the event stream.
-  // Note: this implies that the VID ID modules have been run upstream.
-  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
-  
-  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
 
   edm::Handle<edm::View<pat::Muon> > muonHandle;
   iEvent.getByLabel(muoLabel_,muonHandle);
-  const edm::View<pat::Muon> & muons = *muonHandle;   // const ... &, we don't make a copy of it!
+  const edm::View<pat::Muon> & muons = *muonHandle;   
 
   edm::Handle<edm::View<pat::Jet> > jetHandle;
   iEvent.getByLabel(jetLabel_,jetHandle);
   const edm::View<pat::Jet> & jets = *jetHandle;
    
-   edm::Handle<edm::View<pat::Electron> > electronHandle;
-   iEvent.getByLabel(eleLabel_,electronHandle);
-   const edm::View<pat::Electron> & electrons = *electronHandle;
-   
    edm::Handle<edm::View<pat::MET> > metHandle;
    iEvent.getByLabel(metLabel_,metHandle);
    const edm::View<pat::MET> & mets = *metHandle;
    
-   edm::Handle<edm::View<pat::Photon> > phoHandle;
-   iEvent.getByLabel(phoLabel_,phoHandle);
-   const edm::View<pat::Photon> & photons = *phoHandle;
+   edm::Handle<edm::View<reco::Photon> > photons;
+   iEvent.getByToken(phoLabelToken_,photons);
+
 
    edm::Handle<edm::View<pat::Tau> > tauHandle;
    iEvent.getByLabel(tauLabel_,tauHandle);
-   //const edm::View<pat::Tau> & taus = *tauHandle;
 
    // Swiss cross - ECAL cleaning
    edm::View<pat::Photon>::const_iterator photon;
@@ -466,6 +452,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    pBH += mets[0].p4();
    Met = mets[0].pt();
    MetPhi = mets[0].phi();
+  
    ST += Met;
    
    MetE = mets[0].energy();
@@ -473,6 +460,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    MetPy = mets[0].py();
    MetPz = mets[0].pz();
    MetPt = mets[0].pt();
+   MetEt = mets[0].et();
       
    //Sphericity
    float sumPx2=mets[0].px()*mets[0].px();
@@ -505,17 +493,15 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    edm::Handle< reco::VertexCollection > PVCollection; 
    iEvent.getByLabel(pvSrc_, PVCollection);
    const reco::Vertex & vertex_ = PVCollection->front();
-   //for (reco::VertexCollection::const_iterator vertex_ = PVCollection->begin(); vertex_ != PVCollection->end(); ++vertex_){
-   //std::cout<<"Vertex position "<<vertex_->position()<<endl; 
-   //}
-   
+   if (PVCollection->empty()) return; // skip the event if no PV found
+
    if (iEvent.getByLabel(pvSrc_, PVCollection )) {
      for (reco::VertexCollection::const_iterator pv = PVCollection->begin(); pv != PVCollection->end(); ++pv) {
        //--- vertex selection
        //std::cout<<" PV "<<pv->x()<<" "<<pv->y()<<" "pv->z()<<std::endl;
        //std::cout<<"PV parameters "<<pv->isFake()<<" "<<fabs(pv->z())<<" "<<pv->position().Rho()<<std::endl;
        //std::cout<<"PV position "<<pv->position()<<endl;
-       if (!pv->isFake() && pv->ndof() > 4 && fabs(pv->z()) <= 15. && pv->position().Rho() <= 2.) ++nPVcount;       
+       if (!pv->isFake() && pv->ndof() > 4 && fabs(pv->z()) <= 24. && pv->position().Rho() <= 2.) ++nPVcount;       
      }
    }
    
@@ -523,24 +509,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    bool noscrap = true;
    
    // HLT results   
-   firedHLT_L1Jet6U = false;
-   firedHLT_L1Jet10U = false;
-   firedHLT_Jet15U = false;
-   firedHLT_Jet30U = false;
-   firedHLT_Jet50U = false;
-   firedHLT_DiJetAve15U_8E29 = false;
-   firedHLT_DiJetAve30U_8E29 = false;
-   firedHLT_MET45 = false;
-   firedHLT_MET100 = false;
-   firedHLT_HT100U = false;
-   firedHLT_HT140U = false;
-   firedHLT_HT140U_Eta3_v1 = false;
-   firedHLT_HT160U_v1 = false;
-   firedHLT_HT200U = false; 
-   firedHLT_FwdJet20U = false;
-   firedHLT_QuadJet15U = false;
-   firedHLT_L1MET20 = false;
-            
+   firedHLT_PFHT800_v1 = false;
+   firedHLT_PFHT400_v1 = false;
+   
    TriggerResults tr;
    Handle<TriggerResults> h_trigRes;
    iEvent.getByLabel(triggerLabel_, h_trigRes);
@@ -551,36 +522,22 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    Service<service::TriggerNamesService> tns;
    bool foundNames = tns->getTrigPaths(tr,triggerList);
    if (!foundNames) std::cout << "Could not get trigger names!\n";
-   if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " << triggerList.size() << "," << tr.size() << endl;
+   if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " 
+                                                << triggerList.size() << "," << tr.size() << endl;
    // dump trigger list at first event
    for (unsigned int i=0; i< tr.size(); i++) {
+     //cout<<"["<<i<<"] = "<<triggerList[i]<<endl;
      if ( !tr[i].accept() == 1 ) continue;
-     if( triggerList[i] == "HLT_L1Jet6U") { firedHLT_L1Jet6U = true; }
-     if( triggerList[i] == "HLT_L1Jet10U") { firedHLT_L1Jet10U = true; }    
-     if( triggerList[i] == "HLT_Jet15U") { firedHLT_Jet15U = true; }
-     if( triggerList[i] == "HLT_Jet30U") { firedHLT_Jet30U = true; }
-     if( triggerList[i] == "HLT_Jet50U") { firedHLT_Jet50U = true; }  
-     if( triggerList[i] == "HLT_DiJetAve15U_8E29") { firedHLT_DiJetAve15U_8E29 = true; }   
-     if( triggerList[i] == "HLT_DiJetAve30U_8E29") { firedHLT_DiJetAve30U_8E29 = true; }
-     if( triggerList[i] == "HLT_MET45") { firedHLT_MET45 = true; }  
-     if( triggerList[i] == "HLT_MET100") { firedHLT_MET100 = true; }  
-     if( triggerList[i] == "HLT_HT100U") { firedHLT_HT100U = true; }
-     if( triggerList[i] == "HLT_HT140U") { firedHLT_HT140U = true; }
-     if( triggerList[i] == "HLT_HT140U_Eta3_v1") { firedHLT_HT140U_Eta3_v1 = true; }
-     if( triggerList[i] == "HLT_HT160U_v1") { firedHLT_HT160U_v1 = true; }
-     if( triggerList[i] == "HLT_HT200U") { firedHLT_HT200U = true; }
-     if( triggerList[i] == "HLT_HT200U_v1") { firedHLT_HT200U_v1 = true; }
-     if( triggerList[i] == "HLT_FwdJet20U") { firedHLT_FwdJet20U = true; }
-     if( triggerList[i] == "HLT_QuadJet15U") { firedHLT_QuadJet15U = true; }
-     if( triggerList[i] == "HLT_L1MET20") { firedHLT_L1MET20 = true; }
+     if( triggerList[i] == "HLT_PFHT800_v1") { firedHLT_PFHT800_v1 = true; }
+     if( triggerList[i] == "HLT_PFHT400_v1") { firedHLT_PFHT400_v1 = true; }
 
    }
   
   for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
      if(jet->pt()<20 || abs(jet->eta())>2.4)continue;
      jetcnt++;  
-    
-    if(DEBUG_){
+ 
+   if(DEBUG_){
       cout <<"jet["<<jetcnt<<"]" <<
       " | n_jets = "<<jets.size()<<
       " | pt = "<<jet->pt()<<
@@ -610,6 +567,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     JetPy[jetcnt]  = jet->py();
     JetPz[jetcnt]  = jet->pz();     
     JetPt[jetcnt]  = jet->pt();
+    JetEt[jetcnt]  = jet->et();
     JetEta[jetcnt] = jet->eta();      
     JetPhi[jetcnt] = jet->phi();
     JetNumOfDaughters[jetcnt]       = jet->numberOfDaughters();
@@ -621,30 +579,32 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     ++ngoodjets;
   }   
    
-  for(edm::View<pat::Electron>::const_iterator e = electrons.begin(); e!=electrons.end(); ++e){
-   if(e->pt()<20 || abs(e->eta())>2.4 || !e->gsfTrack()) continue;
+   for (size_t i = 0; i < electrons->size(); ++i){
+   const auto e = electrons->ptrAt(i);
+
+    if(e->pt()<20 || abs(e->eta())>2.4 || !e->gsfTrack()) continue;
     ++elecnt;
-    //smart pointer to pat::Electron
-    const Ptr<pat::Electron> elPtr(electronHandle, e - electronHandle->begin() );
-    double vtx = fabs(e->gsfTrack()->dxy(vertex_.position()));
+
     // Rel-isolation with delta beta correction
     reco::GsfElectron::PflowIsolationVariables pfIso = e->pfIsolationVariables();
     double abs_Iso = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5*pfIso.sumPUPt );
     Reliso_el = abs_Iso/e->pt();    
-       
-   
-    if(DEBUG_){  
+    
+      if(DEBUG_){  
       cout <<"Ele["<<elecnt<<"]" <<
-      " | n_el = "<< electrons.size()<<
+      " | n_el = "<< electrons->size()<<
       " | pt = "<<e->pt()<<
+      " | dz = "<<e->gsfTrack()->dz( vertex_.position() )<<
       " | eta = "<<fabs(e->eta())<<
-      " | vtx_dxy = "<<fabs(e->gsfTrack()->dxy(vertex_.position()))<< 
+      " | dxy = "<<fabs(e->gsfTrack()->dxy(vertex_.position()))<< 
       " | reliso = "<<Reliso_el<< 
       " | hit = "<<e->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)<<
-      " | passVetoId = "<<(*veto_id_decisions)[elPtr]<<
-      " | passMediumId = "<<(*medium_id_decisions)[elPtr]<<
+      " | passConvVeto(a) = "<<!ConversionTools::hasMatchedConversion(*e,conversions,theBeamSpot->position())<<
+      " | passMediumId = "<<(*medium_id_decisions)[e]<<
       " | "<<endl; 
-    }
+      }
+     
+   
     pBH += e->p4();
     ST  += e->et();
     sumPx2 += e->px()*e->px();
@@ -666,72 +626,39 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     ElePy[elecnt]  = e->py();
     ElePz[elecnt]  = e->pz();     
     ElePt[elecnt]  = e->pt();
+    EleEt[elecnt]  = e->et();
     EleEta[elecnt] = e->eta();      
     ElePhi[elecnt] = e->phi();
     EleSupEta[elecnt] = e->superCluster()->eta();
-    ElePassConvVeto[elecnt] = e->passConversionVeto();
-    EleChargeHadIso[elecnt] = e->chargedHadronIso();
-    EleNeutralHadIso[elecnt] = e->neutralHadronIso();
-    ElePhotonIso[elecnt] = e->photonIso();
-    EleUsrIso[elecnt] = e->userIsolation("User1Iso");
-    EleEt[elecnt] = e->et();
-    EleVtx[elecnt] = vtx; 
+    ElePassConvVeto[elecnt] = !ConversionTools::hasMatchedConversion(*e,conversions,theBeamSpot->position());
+    EleDz[elecnt] = e->gsfTrack()->dz( vertex_.position() ); 
     EleRelIsoR03DB[elecnt] = pfIso.sumChargedHadronPt+std::max(0.0,pfIso.sumNeutralHadronEt+pfIso.sumPhotonEt-0.5*pfIso.sumPUPt)/e->pt(); 
     EleAbsDxy[elecnt] = fabs(e->gsfTrack()->dxy(vertex_.position()));
-    EleVetoId[elecnt] = (*veto_id_decisions)[elPtr];
-    EleMediumId[elecnt] = (*medium_id_decisions)[elPtr];
+    EleVetoId[elecnt] = (*veto_id_decisions)[e];
+    EleLooseId[elecnt] = (*loose_id_decisions)[e];
+    EleMediumId[elecnt] = (*medium_id_decisions)[e];
+    EleTightId[elecnt] = (*tight_id_decisions)[e];
     EleNumOfHits[elecnt] = e->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
   ++ngoodelectrons;
     }  
-   // ecal information
    
-   // lazyTools_ = std::auto_ptr<EcalClusterLazyTools>( new EcalClusterLazyTools(iEvent,iSetup,ebRecHitsToken_,eeRecHitsToken_) );
 
-   // get ecal barrel recHits for spike rejection
-  // edm::Handle<EcalRecHitCollection> recHitsEB_h;
-  // iEvent.getByLabel(ebRecHitsLabel_, recHitsEB_h );
         
-         
-   //PAT photons     
-  for(edm::View<pat::Photon>::const_iterator ph = photons.begin(); ph!=photons.end(); ++ph){
+  for (size_t i = 0; i < photons->size(); ++i){
+  const auto ph = photons->ptrAt(i);
   if (ph->pt()<20 || abs(ph->eta()) > 2.4) continue; 
   
-  //smart pointer to pat::Photon
-  const edm::Ptr<pat::Photon> phoPtr(phoHandle, ph - phoHandle->begin()); 
   ++phcnt;
 
-  //isoChargedHadrons, isoNeutralHadrons, isoPhotons with effective area corrections
-  int etaBin = 0; 
-  while ( etaBin < EffectiveAreas::nEtaBins-1 && abs( ph->superCluster()->eta() ) > EffectiveAreas::etaBinLimits[etaBin+1] )
-    { ++etaBin; };
-    
-    double isoPhotonsWithEA = std::max((float)0.0,(*phoPhotonIsolationMap)[phoPtr]
-            -rho_*EffectiveAreas::areaPhotons[etaBin]);
-    
-    double isoNeutralHadronsWithEA = std::max((float)0.0, (*phoNeutralHadronIsolationMap)[phoPtr]
-            -rho_*EffectiveAreas::areaNeutralHadrons[etaBin]);    
-    
-    double isoChargedHadronsWithEA = std::max((float)0.0,(*phoChargedIsolationMap)[phoPtr] 
-            -rho_*EffectiveAreas::areaChargedHadrons[etaBin]);
 
     if(DEBUG_){  
     cout <<"Pho["<<phcnt<<"]" <<
-    " | n_ph = "<< photons.size()<<
+    " | n_ph = "<< photons->size()<<
     " | pt = "<< ph->pt()<<
     " | eta = "<< fabs(ph->superCluster()->eta())<<
     " | phi = " << ph->superCluster()->phi() <<
     " | pix_seed = "<< ph->hasPixelSeed()<<
-    " | H/E = "<< ph->hadTowOverEm()<<
-    " | Phr9 = "<< ph->userFloat("r9_NoZS") <<
-    " | full5x5_sigmaIetaIeta = "<<(*full5x5SigmaIEtaIEtaMap)[phoPtr]<<
-    " | passElectronVeto = "<< ph->passElectronVeto()<<
-    " | isoChargedHadrons = "<< (*phoChargedIsolationMap)[phoPtr] <<
-    " | isoChargedHadronsWithEA = "<< isoChargedHadronsWithEA<<
-    " | isoNeutralHadrons = " << (*phoNeutralHadronIsolationMap)[phoPtr]<<
-    " | isoNeutralHadronsWithEA = "<< isoNeutralHadronsWithEA<<
-    " | isoPhotons = "<< (*phoPhotonIsolationMap)[phoPtr] <<
-    " | isoPhotonsWithEA = "<< isoPhotonsWithEA<<
-    " | "<<endl;
+      " | "<<endl;
     }
     
   //If not a spike, increment # photons
@@ -755,30 +682,16 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   PhPy[ngoodphotons-1] = ph->py();
   PhPz[ngoodphotons-1] = ph->pz();
   PhPt[ngoodphotons-1] = ph->pt();
-  PhEta[ngoodphotons-1] = ph->eta();      
+  PhEt[ngoodphotons-1] = ph->et();
+  PhEta[ngoodphotons-1] = ph->eta();
+  PhLooseId[ngoodphotons-1] = (*loose_id_decisions_ph)[ph];
+  PhMediumId[ngoodphotons-1] = (*medium_id_decisions_ph)[ph];
+  PhTightId[ngoodphotons-1] = (*tight_id_decisions_ph)[ph];      
   PhSupEta[ngoodphotons-1] = ph->superCluster()->eta();      
+  PhSupPhi[ngoodphotons-1] = ph->superCluster()->phi();      
   PhPhi[ngoodphotons-1] = ph->phi();
-  PhHadoverEM[ngoodphotons-1] = ph->hadTowOverEm();
-  PhHasPixelSeed[ngoodphotons-1] = ph->hasPixelSeed();
-  Ph5x5sigmaIetaIeta[ngoodphotons-1] = (*full5x5SigmaIEtaIEtaMap)[phoPtr];
-  Phr9[ngoodphotons-1] = ph->userFloat("r9_NoZS");
   
-  //isoChargedHadrons, isoNeutralHadrons, isoPhotons without effective area corrections
-  PhIsoChargedHadrons[ngoodphotons-1] = (*phoChargedIsolationMap)[phoPtr];
-  PhIsoNeutralHadrons[ngoodphotons-1] = (*phoNeutralHadronIsolationMap)[phoPtr];
-  PhIsoPhotons[ngoodphotons-1] = (*phoPhotonIsolationMap)[phoPtr];
-  
-  PhIsoChargedHadronsEA[ngoodphotons-1] = std::max((float)0.0,(*phoChargedIsolationMap)[phoPtr]
-              -rho_*EffectiveAreas::areaChargedHadrons[etaBin]);
-
-  PhIsoNeutralHadronsEA[ngoodphotons-1] = std::max((float)0.0, (*phoNeutralHadronIsolationMap)[phoPtr]
-              -rho_*EffectiveAreas::areaNeutralHadrons[etaBin]);
-
-  PhIsoPhotonsEA[ngoodphotons-1] = std::max((float)0.0,(*phoPhotonIsolationMap)[phoPtr]
-              -rho_*EffectiveAreas::areaPhotons[etaBin]);
-  //PhSwissCross[ngoodphotons-1] = spikeSelector;
 }
-  
   for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
     if(mu->pt()<20 || abs(mu->eta())>2.4 || !mu->isGlobalMuon() || !mu->isPFMuon())continue;
     ++mucnt; 
@@ -817,6 +730,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     MuPy[ngoodmuons-1] = mu->py();
     MuPz[ngoodmuons-1] = mu->pz(); 
     MuPt[ngoodmuons-1] = mu->pt();
+    MuEt[ngoodmuons-1] = mu->et();
     MuEta[ngoodmuons-1] = mu->eta();      
     MuPhi[ngoodmuons-1] = mu->phi(); 
     MuAbsDxy[ngoodmuons-1] = fabs(mu->globalTrack()->dxy(vertex_.position())); 
@@ -838,6 +752,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
        JetPy[i]=0.;
        JetPz[i]=0.;
        JetPt[i]=0.;
+       JetEt[i]=0.;
        JetEta[i]=99.;
        JetPhi[i]=99.;
        JetNumOfDaughters[i]=99.;
@@ -852,21 +767,19 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
        ElePy[i]=0.;
        ElePz[i]=0.;
        ElePt[i]=0.;
+       EleEt[i]=0.;
        EleEta[i]=99.;
        ElePhi[i]=99.;
        EleSupEta[i] = 99.;
        EleRelIsoR03DB[i]=99.;
        EleAbsDxy[i]=99.;
-       EleVetoId[i]=99.;
-       EleMediumId[i]=99.;
+       EleVetoId[i]=99;
+       EleLooseId[i]=99;
+       EleMediumId[i]=99;
+       EleTightId[i]=99;
        EleNumOfHits[i]=99.;
-       ElePassConvVeto[i] = 99.;
-       EleChargeHadIso[i] = 0.;
-       EleNeutralHadIso[i] = 0.;
-       ElePhotonIso[i] = 0.;
-       EleUsrIso[i] = 0.;
-       EleEt[i] = 0.;
-       EleVtx[i] = 0.;
+       ElePassConvVeto[i] = 99;
+       EleDz[i] = 0.;
      }
      if (i>=ngoodphotons) {
        PhE[i]=0.;
@@ -874,23 +787,15 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
        PhPy[i]=0.;
        PhPz[i]=0.;
        PhPt[i]=0.;
+       PhEt[i]=0.;
        PhEta[i]=99.;
        PhSupEta[i]=99.;
+       PhSupPhi[i]=99.;
        PhPhi[i]=99.;
-       PhHadoverEM[i]=99.;
-       PhHasPixelSeed[i]=99.;
-       Ph5x5sigmaIetaIeta[i]=99.;
-       Phr9[i]=99.;
+       PhLooseId[i]=99.; 
+       PhMediumId[i]=99.; 
+       PhTightId[i]=99.; 
        
-       PhIsoChargedHadrons[i]=99.;
-       PhIsoNeutralHadrons[i]=99.;
-       PhIsoPhotons[i]=99.;
-       
-       PhIsoChargedHadronsEA[i]=99.;
-       PhIsoNeutralHadronsEA[i]=99.;
-       PhIsoPhotonsEA[i]=99.;
-       
-       PhSwissCross[i]=99.;
      }       
      if (i>=ngoodmuons) {
        MuE[i]=0.;
@@ -898,6 +803,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
        MuPy[i]=0.;
        MuPz[i]=0.;
        MuPt[i]=0.;
+       MuEt[i]=0.;
        MuEta[i]=99.;
        MuPhi[i]=99.;
        MuAbsDxy[i]=99.;
@@ -993,6 +899,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }          
    ResJetM = pJet.M();
    ResJetPt = pJet.Pt();
+   ResJetEt = pJet.Et();
 
    if (NElectrons) {
      ResEleEta = pEle.Eta();
@@ -1058,68 +965,60 @@ void BHAnalyzerTLBSM::beginJob()
   //h_norm = new TH1F("h_norm","",500,0,50000);
 
   tree->Branch("NJets",&NJets,"NJets/I");
-  tree->Branch("JetE",&JetE,"JetE[NJets]");
-  tree->Branch("JetPx",&JetPx,"JetPx[NJets]");
-  tree->Branch("JetPy",&JetPy,"JetPy[NJets]");
-  tree->Branch("JetPz",&JetPz,"JetPz[NJets]");
-  tree->Branch("JetPt",&JetPt,"JetPt[NJets]");
-  tree->Branch("JetEta",&JetEta,"JetEta[NJets]");
-  tree->Branch("JetPhi",&JetPhi,"JetPhi[NJets]");
-  tree->Branch("JetNumOfDaughters",&JetNumOfDaughters,"JetNumOfDaughters[NJets]");
-  tree->Branch("JetNeutralHadEnergyFrac",&JetNeutralHadEnergyFrac,"JetNeutralHadEnergyFrac[NJets]");
-  tree->Branch("JetChargeHadEnergyFrac", &JetChargeHadEnergyFrac, "JetChargeHadEnergyFrac[NJets]");
-  tree->Branch("JetNeutralEmEnergyFrac",&JetNeutralEmEnergyFrac,"JetNeutralEmEnergyFrac[NJets]");
-  tree->Branch("JetChargeEmEnergyFrac",&JetChargeEmEnergyFrac,"JetChargeEmEnergyFrac[NJets]");
-  tree->Branch("JetChargeMult", &JetChargeMult, "JetChargeMult[NJets]");
+  tree->Branch("JetE",&JetE,"JetE[NJets]/F");
+  tree->Branch("JetPx",&JetPx,"JetPx[NJets]/F");
+  tree->Branch("JetPy",&JetPy,"JetPy[NJets]/F");
+  tree->Branch("JetPz",&JetPz,"JetPz[NJets]/F");
+  tree->Branch("JetPt",&JetPt,"JetPt[NJets]/F");
+  tree->Branch("JetEt",&JetEt,"JetEt[NJets]/F");
+  tree->Branch("JetEta",&JetEta,"JetEta[NJets]/F");
+  tree->Branch("JetPhi",&JetPhi,"JetPhi[NJets]/F");
+  tree->Branch("JetNumOfDaughters",&JetNumOfDaughters,"JetNumOfDaughters[NJets]/I");
+  tree->Branch("JetNeutralHadEnergyFrac",&JetNeutralHadEnergyFrac,"JetNeutralHadEnergyFrac[NJets]/F");
+  tree->Branch("JetChargeHadEnergyFrac", &JetChargeHadEnergyFrac, "JetChargeHadEnergyFrac[NJets]/F");
+  tree->Branch("JetNeutralEmEnergyFrac",&JetNeutralEmEnergyFrac,"JetNeutralEmEnergyFrac[NJets]/F");
+  tree->Branch("JetChargeEmEnergyFrac",&JetChargeEmEnergyFrac,"JetChargeEmEnergyFrac[NJets]/F");
+  tree->Branch("JetChargeMult", &JetChargeMult, "JetChargeMult[NJets]/I");
 
-  tree->Branch("EleE",&EleE,"EleE[25]");
-  tree->Branch("ElePx",&ElePx,"ElePx[25]");
-  tree->Branch("ElePy",&ElePy,"ElePy[25]");
-  tree->Branch("ElePz",&ElePz,"ElePz[25]");
-  tree->Branch("ElePt",&ElePt,"ElePt[25]");
-  tree->Branch("EleEta",&EleEta,"EleEta[25]");
-  tree->Branch("ElePhi",&ElePhi,"ElePhi[25]");
-  tree->Branch("EleSupEta", &EleSupEta, "EleSupEta[25]");
-  tree->Branch("EleRelIsoR03DB",&EleRelIsoR03DB,"EleRelIsoR03DB[25]");
-  tree->Branch("EleAbsDxy",&EleAbsDxy,"EleAbsDxy[25]");
-  tree->Branch("EleVetoId",&EleVetoId,"EleVetoId[25]");
-  tree->Branch("EleMediumId",&EleMediumId,"EleMediumId[25]");
-  tree->Branch("EleNumOfHits",&EleNumOfHits,"EleNumOfHits[25]");
-  tree->Branch("ElePassConvVeto", &ElePassConvVeto, "ElePassConvVeto[25]");
-  tree->Branch("EleChargeHadIso", &EleChargeHadIso, "EleChargeHadIso[25]");
-  tree->Branch("EleNeutralHadIso", &EleNeutralHadIso, "EleNeutralHadIso[25]");
-  tree->Branch("ElePhotonIso", &ElePhotonIso, "ElePhotonIso[25]");
-  tree->Branch("EleUsrIso", &EleUsrIso, "EleUsrIso[25]");
-  tree->Branch("EleEt", &EleEt, "EleEt[25]");
-  tree->Branch("EleVtx", &EleVtx, "EleVtx[25]"); 
+  tree->Branch("EleE" ,&EleE, "EleE[25]/F");
+  tree->Branch("ElePx",&ElePx,"ElePx[25]/F");
+  tree->Branch("ElePy",&ElePy,"ElePy[25]/F");
+  tree->Branch("ElePz",&ElePz,"ElePz[25]/F");
+  tree->Branch("ElePt",&ElePt,"ElePt[25]/F");
+  tree->Branch("EleEt",&EleEt,"EleEt[25]/F");
+  tree->Branch("EleEta",&EleEta,"EleEta[25]/F");
+  tree->Branch("ElePhi",&ElePhi,"ElePhi[25]/F");
+  tree->Branch("EleSupEta", &EleSupEta, "EleSupEta[25]/F");
+  tree->Branch("EleRelIsoR03DB",&EleRelIsoR03DB,"EleRelIsoR03DB[25]/F");
+  tree->Branch("EleAbsDxy",&EleAbsDxy,"EleAbsDxy[25]/F");
+  tree->Branch("EleVetoId",&EleVetoId,"EleVetoId[25]/I");
+  tree->Branch("EleLooseId",&EleLooseId,"EleLooseId[25]/I");
+  tree->Branch("EleMediumId",&EleMediumId,"EleMediumId[25]/I");
+  tree->Branch("EleTightId",&EleTightId,"EleTightId[25]/I");
+  tree->Branch("ElePassConvVeto", &ElePassConvVeto, "ElePassConvVeto[25]/I");
+  tree->Branch("EleNumOfHits",&EleNumOfHits,"EleNumOfHits[25]/F");
+  tree->Branch("EleDz", &EleDz, "EleDz[25]/F"); 
  
-  tree->Branch("PhE",&PhE,"PhE[25]");
-  tree->Branch("PhPx",&PhPx,"PhPx[25]");
-  tree->Branch("PhPy",&PhPy,"PhPy[25]");
-  tree->Branch("PhPz",&PhPz,"PhPz[25]");
-  tree->Branch("PhPt",&PhPt,"PhPt[25]");
-  tree->Branch("PhEta",&PhEta,"PhEta[25]");
-  tree->Branch("PhSupEta",&PhSupEta,"PhSupEta[25]");
-  tree->Branch("PhPhi",&PhPhi,"PhPhi[25]");
-  tree->Branch("PhSwissCross",&PhSwissCross,"PhSwissCross[25]");  
-  tree->Branch("PhHadoverEM",&PhHadoverEM,"PhHadoverEM[25]");
-  tree->Branch("PhHasPixelSeed",&PhHasPixelSeed,"PhHasPixelSeed[25]");
-  tree->Branch("Ph5x5sigmaIetaIeta",&Ph5x5sigmaIetaIeta,"Ph5x5sigmaIetaIeta[25]");
-  tree->Branch("Phr9",&Phr9,"Phr9[25]");
-  
-  tree->Branch("PhIsoChargedHadrons",&PhIsoChargedHadrons,"PhIsoChargedHadrons[25]");
-  tree->Branch("PhIsoNeutralHadrons",&PhIsoNeutralHadrons,"PhIsoNeutralHadrons[25]");
-  tree->Branch("PhIsoPhotons",&PhIsoPhotons,"PhIsoPhotons[25]");
-  
-  tree->Branch("PhIsoChargedHadronsEA",&PhIsoChargedHadronsEA,"PhIsoChargedHadronsEA[25]");
-  tree->Branch("PhIsoNeutralHadronsEA",&PhIsoNeutralHadronsEA,"PhIsoNeutralHadronsEA[25]");
-  tree->Branch("PhIsoPhotonsEA",&PhIsoPhotonsEA,"PhIsoPhotonsEA[25]");
+  tree->Branch("PhE",&PhE,"PhE[25]/F");
+  tree->Branch("PhPx",&PhPx,"PhPx[25]/F");
+  tree->Branch("PhPy",&PhPy,"PhPy[25]/F");
+  tree->Branch("PhPz",&PhPz,"PhPz[25]/F");
+  tree->Branch("PhPt",&PhPt,"PhPt[25]/F");
+  tree->Branch("PhEt",&PhEt,"PhEt[25]/F");
+  tree->Branch("PhEta",&PhEta,"PhEta[25]/F");
+  tree->Branch("PhSupEta",&PhSupEta,"PhSupEta[25]/F");
+  tree->Branch("PhSupPhi",&PhSupPhi,"PhSupPhi[25]/F");
+  tree->Branch("PhPhi",&PhPhi,"PhPhi[25]/F");
+  tree->Branch("PhLooseId",&PhLooseId,"PhLooseId[25]/I");
+  tree->Branch("PhMediumId",&PhMediumId,"PhMediumId[25]/I");
+  tree->Branch("PhTightId",&PhTightId,"PhTightId[25]/I");
 
   tree->Branch("MuE",&MuE,"MuE[25]");
   tree->Branch("MuPx",&MuPx,"MuPx[25]");
   tree->Branch("MuPy",&MuPy,"MuPy[25]");
   tree->Branch("MuPz",&MuPz,"MuPz[25]");
   tree->Branch("MuPt",&MuPt,"MuPt[25]");
+  tree->Branch("MuEt",&MuEt,"MuEt[25]");
   tree->Branch("MuEta",&MuEta,"MuEta[25]");
   tree->Branch("MuPhi",&MuPhi,"MuPhi[25]");
   tree->Branch("MuAbsDxy",&MuAbsDxy,"MuAbsDxy[25]");  
@@ -1140,6 +1039,7 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("MetPy",&MetPy,"MetPy/F");
   tree->Branch("MetPz",&MetPz,"MetPz/F");
   tree->Branch("MetPt",&MetPt,"MetPt/F");
+  tree->Branch("MetEt",&MetEt,"MetEt/F");
   tree->Branch("MetPhi",&MetPhi,"MetPhi/F");   
   tree->Branch("Sphericity", &Sphericity, "Sphericity/F");
   tree->Branch("Jet",JetArr,"JetArr[4]");   
@@ -1163,6 +1063,7 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("ResJetPhi",&ResJetPhi,"ResJetPhi/F");
   tree->Branch("ResJetM",&ResJetM,"ResJetM/F");
   tree->Branch("ResJetPt",&ResJetPt,"ResJetPt/F");
+  tree->Branch("ResJetEt",&ResJetEt,"ResJetEt/F");
   tree->Branch("ResEleEta",&ResEleEta,"ResEleEta/F"); 
   tree->Branch("ResElePhi",&ResElePhi,"ResElePhi/F");
   tree->Branch("ResEleM",&ResEleM,"ResEleM/F");
@@ -1190,24 +1091,8 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("isRealData",&isRealData,"isRealData/I");
   tree->Branch("muon_d0",&muon_d0,"muon_d0/F");                                                      
   
-  tree->Branch("firedHLT_L1Jet6U",&firedHLT_L1Jet6U,"firedHLT_L1Jet6U/B");
-  tree->Branch("firedHLT_L1Jet10U",&firedHLT_L1Jet10U,"firedHLT_L1Jet10U/B");
-  tree->Branch("firedHLT_Jet15U",&firedHLT_Jet15U,"firedHLT_Jet15U/B");
-  tree->Branch("firedHLT_Jet30U",&firedHLT_Jet30U,"firedHLT_Jet30U/B");
-  tree->Branch("firedHLT_Jet50U",&firedHLT_Jet50U,"firedHLT_Jet50U/B");
-  tree->Branch("firedHLT_DiJetAve15U_8E29",&firedHLT_DiJetAve15U_8E29,"firedHLT_DiJetAve15U_8E29/B");
-  tree->Branch("firedHLT_DiJetAve30U_8E29",&firedHLT_DiJetAve30U_8E29,"firedHLT_DiJetAve30U_8E29/B");
-  tree->Branch("firedHLT_MET45",&firedHLT_MET45,"firedHLT_MET45/B");
-  tree->Branch("firedHLT_MET100",&firedHLT_MET100,"firedHLT_MET100/B");
-  tree->Branch("firedHLT_HT100U",&firedHLT_HT100U,"firedHLT_HT100U/B");  
-  tree->Branch("firedHLT_HT140U",&firedHLT_HT140U,"firedHLT_HT140U/B");
-  tree->Branch("firedHLT_HT140U_Eta3_v1",&firedHLT_HT140U_Eta3_v1,"firedHLT_HT140U_Eta3_v1/B");
-  tree->Branch("firedHLT_HT160U_v1",&firedHLT_HT160U_v1,"firedHLT_HT160U_v1/B");
-  tree->Branch("firedHLT_HT200U",&firedHLT_HT200U,"firedHLT_HT200U/B");
-  tree->Branch("firedHLT_HT200U_v1",&firedHLT_HT200U_v1,"firedHLT_HT200U_v1/B");
-  tree->Branch("firedHLT_FwdJet20U",&firedHLT_FwdJet20U,"firedHLT_FwdJet20U/B");
-  tree->Branch("firedHLT_QuadJet15U",&firedHLT_QuadJet15U,"firedHLT_QuadJet15U/B");
-  tree->Branch("firedHLT_L1MET20",&firedHLT_L1MET20,"firedHLT_L1MET20/B");
+  tree->Branch("firedHLT_PFHT800_v1",&firedHLT_PFHT800_v1,"firedHLT_PFHT800_v1/B");
+  tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/B");
     
   for (size_t i=0; i<cutNames_.size(); ++i)
     createHistogram(cutNames_[i]);
