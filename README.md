@@ -1,15 +1,14 @@
 # BHAnalysis
 ##1)CMSSW VERSION
 -------------
-CMSSW_7_2_0 version adopted becausue photon/electron IDs are implemented with this version.
+CMSSW_7_4_5 version adopted becausue photon/electron IDs are implemented with this version.
 ##2) Required packages 
 -----------------
 for photon/electron IDs, do the followings:
 ```
-cmsrel CMSSW_7_2_0
-cd CMSSW_7_2_0/src
+cmsrel CMSSW_7_4_5
+cd CMSSW_7_4_5/src
 cmsenv
-git cms-merge-topic ikrav:egm_id_phys14
 scram b -j 10  
 ```
 ##3) Reference Twikis for IDS
