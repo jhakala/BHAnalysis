@@ -60,6 +60,7 @@
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "FWCore/Framework/interface/TriggerNamesService.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 
 // ECAL spike cleaning - Swiss cross
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
@@ -155,6 +156,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::EDGetTokenT<edm::ValueMap<bool> > phoLooseIdMapToken_;
       edm::EDGetTokenT<edm::ValueMap<bool> > phoMediumIdMapToken_;
       edm::EDGetTokenT<edm::ValueMap<bool> > phoTightIdMapToken_; 
+      edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
       //TTree
       TTree* tree;
       float JetE[25];
@@ -288,8 +290,12 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   float LeadingArr[4];    
 
   //HLT info (Jets and MET)
-  bool firedHLT_PFHT800_v1;
+  bool firedHLT_PFHT300_v1;
   bool firedHLT_PFHT400_v1;
+  bool firedHLT_PFHT475_v1;
+  bool firedHLT_PFHT600_v2;
+  bool firedHLT_PFHT650_v2;
+  bool firedHLT_PFHT800_v1;
   
   double Reliso_el;
   double Reliso_mu;
@@ -322,7 +328,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
   phoLooseIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoLooseIdMap"))),
   phoMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoMediumIdMap"))),
-  phoTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoTightIdMap")))
+  phoTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoTightIdMap"))),
+  triggerPrescales_(consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales")))
   {
    //now do what ever initialization is needed
    beamSpotToken_            = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"));
@@ -421,7 +428,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    edm::Handle<edm::View<pat::Tau> > tauHandle;
    iEvent.getByLabel(tauLabel_,tauHandle);
-
+   
+   edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+   iEvent.getByToken(triggerPrescales_, triggerPrescales);
    // Swiss cross - ECAL cleaning
    edm::View<pat::Photon>::const_iterator photon;
    Handle<EcalRecHitCollection> Brechit;//barrel
@@ -509,8 +518,12 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    bool noscrap = true;
    
    // HLT results   
-   firedHLT_PFHT800_v1 = false;
+   firedHLT_PFHT300_v1 = false;
    firedHLT_PFHT400_v1 = false;
+   firedHLT_PFHT475_v1 = false;
+   firedHLT_PFHT600_v2 = false;
+   firedHLT_PFHT650_v2 = false;
+   firedHLT_PFHT800_v1 = false;
    
    TriggerResults tr;
    Handle<TriggerResults> h_trigRes;
@@ -526,10 +539,16 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                                                 << triggerList.size() << "," << tr.size() << endl;
    // dump trigger list at first event
    for (unsigned int i=0; i< tr.size(); i++) {
-     //cout<<"["<<i<<"] = "<<triggerList[i]<<endl;
+     //std::cout << "Trigger Bit["<<i<<"] = " << triggerList[i]<<
+     //": Prescale " << triggerPrescales->getPrescaleForIndex(i) <<
+     //": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << std::endl;
      if ( !tr[i].accept() == 1 ) continue;
-     if( triggerList[i] == "HLT_PFHT800_v1") { firedHLT_PFHT800_v1 = true; }
+     if( triggerList[i] == "HLT_PFHT300_v1") { firedHLT_PFHT300_v1 = true; }
      if( triggerList[i] == "HLT_PFHT400_v1") { firedHLT_PFHT400_v1 = true; }
+     if( triggerList[i] == "HLT_PFHT475_v1") { firedHLT_PFHT475_v1 = true; }
+     if( triggerList[i] == "HLT_PFHT600_v2") { firedHLT_PFHT600_v2 = true; }
+     if( triggerList[i] == "HLT_PFHT650_v2") { firedHLT_PFHT650_v2 = true; }
+     if( triggerList[i] == "HLT_PFHT800_v1") { firedHLT_PFHT800_v1 = true; }
 
    }
   
@@ -632,14 +651,14 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     EleSupEta[elecnt] = e->superCluster()->eta();
     ElePassConvVeto[elecnt] = !ConversionTools::hasMatchedConversion(*e,conversions,theBeamSpot->position());
     EleDz[elecnt] = e->gsfTrack()->dz( vertex_.position() ); 
-    EleRelIsoR03DB[elecnt] = pfIso.sumChargedHadronPt+std::max(0.0,pfIso.sumNeutralHadronEt+pfIso.sumPhotonEt-0.5*pfIso.sumPUPt)/e->pt(); 
+    EleRelIsoR03DB[elecnt] = (pfIso.sumChargedHadronPt+std::max(0.0,pfIso.sumNeutralHadronEt+pfIso.sumPhotonEt-0.5*pfIso.sumPUPt))/e->pt(); 
     EleAbsDxy[elecnt] = fabs(e->gsfTrack()->dxy(vertex_.position()));
     EleVetoId[elecnt] = (*veto_id_decisions)[e];
     EleLooseId[elecnt] = (*loose_id_decisions)[e];
     EleMediumId[elecnt] = (*medium_id_decisions)[e];
     EleTightId[elecnt] = (*tight_id_decisions)[e];
     EleNumOfHits[elecnt] = e->gsfTrack()->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS);
-  ++ngoodelectrons;
+    ++ngoodelectrons;
     }  
    
 
@@ -1091,8 +1110,12 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("isRealData",&isRealData,"isRealData/I");
   tree->Branch("muon_d0",&muon_d0,"muon_d0/F");                                                      
   
-  tree->Branch("firedHLT_PFHT800_v1",&firedHLT_PFHT800_v1,"firedHLT_PFHT800_v1/B");
+  tree->Branch("firedHLT_PFHT300_v1",&firedHLT_PFHT300_v1,"firedHLT_PFHT300_v1/B");
   tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/B");
+  tree->Branch("firedHLT_PFHT475_v1",&firedHLT_PFHT475_v1,"firedHLT_PFHT475_v1/B");
+  tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/B");
+  tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/B");
+  tree->Branch("firedHLT_PFHT800_v1",&firedHLT_PFHT800_v1,"firedHLT_PFHT800_v1/B");
     
   for (size_t i=0; i<cutNames_.size(); ++i)
     createHistogram(cutNames_[i]);
