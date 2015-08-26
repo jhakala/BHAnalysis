@@ -1,6 +1,6 @@
 # BHAnalysis
-##1)INSTRUCTION TO RUN NTUPLIZER LOCALLY ON LXPLUS
--------------------------------------------------
+##1) INSTRUCTION TO RUN NTUPLIZER ON LXPLUS
+-------------------------------------------
 ###i) Check SCRAM_ARCH
 Please go to your working area where you want to put your CMMSW release 
 
