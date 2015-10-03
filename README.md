@@ -18,7 +18,7 @@ keep "runOnData=True" for data
 and  "runOnData=False" for MC
 and then simply
 ```
-cd <some dir>/BHAnalysis
+cd BHAnalysis
 cmsRun maketuples_jec_cfg.py
 ```
 If you get any error at this point then please let me know.
