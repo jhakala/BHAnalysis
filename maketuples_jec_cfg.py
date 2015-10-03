@@ -30,9 +30,9 @@ process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
 # How many events to process
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(50))
 #configurable options ==============================================
-runOnData=False #data/MC switch
+runOnData=True #data/MC switch
 usePrivateSQlite=True #use external JECs (sqlite file)
-useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
+useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual 
 #corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or 
 #for analysis checks and developments (not the official recommendation!).
@@ -42,7 +42,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v1'
+  process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v2'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = 'MCRUN2_74_V9'
@@ -50,15 +50,15 @@ if usePrivateSQlite:
   from CondCore.DBCommon.CondDBSetup_cfi import *
   import os
   if runOnData:
-    jecfile="Summer15_50nsV4_DATA"
+    jecfile="Summer15_25nsV5_DATA"
   else:
     jecfile="Summer15_50nsV4_MC"
  # dBFile can be called by following two ways
  # dBFile = os.path.expandvars("$CMSSW_BASE/src/PhysicsTools/PatAlgos/test/"+jecfile+".db")
-  dBFile = os.path.expandvars("/afs/cern.ch/work/a/asaddiqu/BH_CMS/CMSSW_7_4_6_patch1/src/BH_CMS2015/BHAnalysis-master/jec/"+jecfile+".db")
+ # dBFile = os.path.expandvars("/afs/cern.ch/work/a/asaddiqu/BH_CMS/CMSSW_7_4_6_patch1/src/BH_CMS2015/BHAnalysis-master/jec/"+jecfile+".db")
   #dBFile = os.path.expandvars(jecfile+".db") #A try for crab
   process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-    connect = cms.string( "sqlite_file://"+dBFile ),
+    connect = cms.string( "sqlite_file:/afs/cern.ch/user/j/johakala/work/public/CMSSW_7_4_12_patch4/src/BH/BHAnalysis/Summer15_25nsV5_DATA.db" ),
     toGet =  cms.VPSet(
     cms.PSet(
       record = cms.string("JetCorrectionsRecord"),
@@ -89,7 +89,7 @@ process.patJetsReapplyJEC = process.patJetsUpdated.clone(
 process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
 #-------------------------------------------
 #uncertainty file (also can be called by following two ways)
-jecUncertaintyFile="BH_CMS2015/BHAnalysis-master/jec/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"
+jecUncertaintyFile="BH/BHAnalysis/Summer15_25nsV5_DATA/Summer15_25nsV5_DATA_UncertaintySources_AK4PFchs.txt"
 #jecUncertaintyFile="PhysicsTools/PatUtils/data/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -117,7 +117,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 
 # Define the input source
 if runOnData:
-  fname = 'root://eoscms.cern.ch//store/data/Run2015B/JetHT/MINIAOD/PromptReco-v1/000/251/252/00000/583CFB34-AF27-E511-8639-02163E0135AC.root'
+  fname = 'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/729/00000/4EB760E9-4560-E511-9B26-02163E01393A.root'
 else:
   fname = 'root://eoscms.cern.ch//store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/001C7571-0511-E511-9B8E-549F35AE4FAF.root'
 # Define the input source
@@ -172,7 +172,7 @@ if not applyResiduals:
 import FWCore.ParameterSet.Config as cms
 import FWCore.PythonUtilities.LumiList as LumiList
 if runOnData:
-	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/work/a/asaddiqu/BH_CMS/CMSSW_7_4_6_patch1/src/BH_CMS2015/BHAnalysis-master/JSON_CRAB/golden_246908-251883_13TeV_40pb.txt').getVLuminosityBlockRange()
+	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 
 #input file
 #import FWCore.Utilities.FileUtils as FileUtils
