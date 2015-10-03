@@ -1,22 +1,24 @@
 # BHAnalysis
 ##1) INSTRUCTION TO RUN NTUPLIZER ON LXPLUS
 -------------------------------------------
-###i) Put Ntuplizer in src directory
-Assuming you have a directory "BHAnalysis" somewhere in your lxplus account containing Ntuplizer, which is cloned from git. Then please follow this in src directory
+###i) Compile nTuplizer against CMSSW_7_4_12_patch4
+For running on lxplus, do:
 ```
-mkdir BH_CMS2015
-cp -r /afs/cern.ch/...etc../../BHAnalysis BH_CMS2015/
-scramv1 b -j 8
-cd BH_CMS2015/BHAnalysis
+cmsrel CMSSW_7_4_12_patch4
+mkdir CMSSW_7_4_12_patch4/src/<some dir>
+cd CMSSW_7_4_12_patch4/src/<some dir>
+git clone https://github.com/jhakala/BHAnalysis.git
+scram b -j8
 ```
 ###ii) Change path inside maketuples_jec_cfg.py
-Please change all the "/afs/cern.ch/work/a/asaddiqu/" paths according to your lxplus account.
+Please change all the "/afs/cern.ch/work/<your username>" paths according to your lxplus account.
 ###v) Run for data/mc on lxplus locally
-Inside "maketuples_jec_cfg.py"   
+Inside "<some dir>/BHAnalysis/maketuples_jec_cfg.py"   
 keep "runOnData=True" for data  
 and  "runOnData=False" for MC
 and then simply
 ```
+cd <some dir>/BHAnalysis
 cmsRun maketuples_jec_cfg.py
 ```
 If you get any error at this point then please let me know.
