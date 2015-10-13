@@ -260,15 +260,15 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   float LeadingArr[4];    
 
   //HLT info (Jets and MET)
-  bool firedHLT_PFJet60_v2;
-  bool firedHLT_PFJet140_v2;
-  bool firedHLT_PFJet450_v2;
-  bool firedHLT_PFHT300_v1;
-  bool firedHLT_PFHT400_v1;
-  bool firedHLT_PFHT475_v1;
-  bool firedHLT_PFHT600_v2;
-  bool firedHLT_PFHT650_v2;
-  bool firedHLT_PFHT800_v1;
+  //bool firedHLT_PFJet60_v2;
+  //bool firedHLT_PFJet140_v2;
+  //bool firedHLT_PFJet450_v2;
+  //bool firedHLT_PFHT300_v1;
+  //bool firedHLT_PFHT400_v1;
+  bool firedHLT_PFHT475_v2;
+  //bool firedHLT_PFHT600_v2;
+  //bool firedHLT_PFHT650_v2;
+  bool firedHLT_PFHT800_v2;
   
   double Reliso_el;
   double Reliso_mu;
@@ -491,15 +491,15 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    bool noscrap = true;
    
    // HLT results   
-   firedHLT_PFJet60_v2  = false;
-   firedHLT_PFJet140_v2 = false;
-   firedHLT_PFJet450_v2 = false;
-   firedHLT_PFHT300_v1  = false;
-   firedHLT_PFHT400_v1  = false;
-   firedHLT_PFHT475_v1  = false;
-   firedHLT_PFHT600_v2  = false;
-   firedHLT_PFHT650_v2  = false;
-   firedHLT_PFHT800_v1  = false;
+   //firedHLT_PFJet60_v2  = false;
+   //firedHLT_PFJet140_v2 = false;
+   //firedHLT_PFJet450_v2 = false;
+   //firedHLT_PFHT300_v1  = false;
+   //firedHLT_PFHT400_v1  = false;
+   firedHLT_PFHT475_v2  = false;
+   //firedHLT_PFHT600_v2  = false;
+   //firedHLT_PFHT650_v2  = false;
+   firedHLT_PFHT800_v2  = false;
    
    TriggerResults tr;
    Handle<TriggerResults> h_trigRes;
@@ -519,15 +519,15 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      //": Prescale " << triggerPrescales->getPrescaleForIndex(i) <<endl;
      //": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !tr[i].accept() == 1 ) continue;
-     if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
-     if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
-     if( triggerList[i] == "HLT_PFJet450_v2") { firedHLT_PFJet450_v2 = true; }
-     if( triggerList[i] == "HLT_PFHT300_v1")  { firedHLT_PFHT300_v1  = true; }
-     if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
-     if( triggerList[i] == "HLT_PFHT475_v1")  { firedHLT_PFHT475_v1  = true; }
-     if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
-     if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
-     if( triggerList[i] == "HLT_PFHT800_v1")  { firedHLT_PFHT800_v1  = true; }
+     //if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
+     //if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
+     //if( triggerList[i] == "HLT_PFJet450_v2") { firedHLT_PFJet450_v2 = true; }
+     //if( triggerList[i] == "HLT_PFHT300_v1")  { firedHLT_PFHT300_v1  = true; }
+     //if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
+     if( triggerList[i] == "HLT_PFHT475_v2")  { firedHLT_PFHT475_v2  = true; }
+     //if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
+     //if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
+     if( triggerList[i] == "HLT_PFHT800_v2")  { firedHLT_PFHT800_v2  = true; }
 
    }
   
@@ -1015,15 +1015,15 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("isRealData",&isRealData,"isRealData/I");
   tree->Branch("muon_d0",&muon_d0,"muon_d0/F");                                                      
   
-  tree->Branch("firedHLT_PFJet60_v2",&firedHLT_PFJet60_v2,"firedHLT_PFJet60_v2/B");
-  tree->Branch("firedHLT_PFJet140_v2",&firedHLT_PFJet140_v2,"firedHLT_PFJet140_v2/B");
-  tree->Branch("firedHLT_PFJet450_v2",&firedHLT_PFJet450_v2,"firedHLT_PFJet450_v2/B");
-  tree->Branch("firedHLT_PFHT300_v1",&firedHLT_PFHT300_v1,"firedHLT_PFHT300_v1/B");
-  tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/B");
-  tree->Branch("firedHLT_PFHT475_v1",&firedHLT_PFHT475_v1,"firedHLT_PFHT475_v1/B");
-  tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/B");
-  tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/B");
-  tree->Branch("firedHLT_PFHT800_v1",&firedHLT_PFHT800_v1,"firedHLT_PFHT800_v1/B");
+  //tree->Branch("firedHLT_PFJet60_v2",&firedHLT_PFJet60_v2,"firedHLT_PFJet60_v2/B");
+  //tree->Branch("firedHLT_PFJet140_v2",&firedHLT_PFJet140_v2,"firedHLT_PFJet140_v2/B");
+  //tree->Branch("firedHLT_PFJet450_v2",&firedHLT_PFJet450_v2,"firedHLT_PFJet450_v2/B");
+  //tree->Branch("firedHLT_PFHT300_v1",&firedHLT_PFHT300_v1,"firedHLT_PFHT300_v1/B");
+  //tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/B");
+  tree->Branch("firedHLT_PFHT475_v2",&firedHLT_PFHT475_v2,"firedHLT_PFHT475_v2/B");
+  //tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/B");
+  //tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/B");
+  tree->Branch("firedHLT_PFHT800_v2",&firedHLT_PFHT800_v2,"firedHLT_PFHT800_v2/B");
     
   for (size_t i=0; i<cutNames_.size(); ++i)
     createHistogram(cutNames_[i]);

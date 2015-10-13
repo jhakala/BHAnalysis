@@ -96,7 +96,7 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
 process.TFileService=cms.Service("TFileService",
-        fileName=cms.string("ntuple_output_13.root"),
+        fileName=cms.string("ntuple_output_5.2.1.root"),
         closeFileFast = cms.untracked.bool(True)
 )
 
@@ -123,32 +123,11 @@ process.out = cms.OutputModule('PoolOutputModule',
 #  fname = 'root://eoscms.cern.ch//store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/001C7571-0511-E511-9B8E-549F35AE4FAF.root'
 # Define the input source
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/584/00000/8A5B7CB0-855D-E511-BFCF-02163E0133A9.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/587/00000/F664AC07-935D-E511-A019-02163E01424B.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/629/00000/6EDCF302-0A5F-E511-A5EF-02163E014642.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/630/00000/86ACFECD-3C5F-E511-B8F2-02163E014374.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/662/00000/300565D4-F55E-E511-95AF-02163E011D25.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/672/00000/0C762538-075F-E511-ACEE-02163E0136C1.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/673/00000/F20A98EE-1C5F-E511-8845-02163E014767.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/674/00000/DA9B86E1-F95E-E511-B75E-02163E013460.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/675/00000/6467F0A5-A75F-E511-AE8A-02163E013389.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/675/00000/7285B0A0-A75F-E511-8C73-02163E011911.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/675/00000/D68BBF9F-A75F-E511-9D37-02163E011BD2.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/1069ABF5-C15F-E511-898B-02163E014160.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/206851F5-C15F-E511-A5A5-02163E0142BA.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/2A98DEF6-C15F-E511-B5F9-02163E012A2E.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/36C1F29D-C25F-E511-B94E-02163E011F85.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/3A2126E4-C15F-E511-A4D2-02163E011888.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/506D1AE8-C15F-E511-8A08-02163E0144EA.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/5CC9C1EC-C15F-E511-9417-02163E014370.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/62B3323F-C35F-E511-B49D-02163E0143A2.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/866DBCDD-C15F-E511-B4DE-02163E013965.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/C0DE1AED-C15F-E511-971C-02163E014337.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/C4318ED7-C15F-E511-91C0-02163E012175.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/EC93F0E5-C15F-E511-940F-02163E01350C.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/676/00000/EEE0E0DD-C15F-E511-A1FD-02163E014268.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/677/00000/58B82BAD-985F-E511-AA44-02163E012386.root', 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/677/00000/5E2C8E5D-985F-E511-A44D-02163E013394.root' 
+'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/868/00000/164E53A0-B961-E511-B74F-02163E0133C7.root',
+#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/868/00000/20745BA4-B961-E511-A1CC-02163E0133C7.root',
+#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/868/00000/380F9DAA-B961-E511-BFC5-02163E011AC8.root',
+#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/868/00000/50C2DFA6-B961-E511-AE38-02163E0133D6.root',
+#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/868/00000/581975AD-B961-E511-A6C3-02163E011F3B.root',
  )
 )
 
