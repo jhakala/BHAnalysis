@@ -515,9 +515,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                                                 << triggerList.size() << "," << tr.size() << endl;
    // dump trigger list at first event
    for (unsigned int i=0; i< tr.size(); i++) {
-     //std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
-     //": Prescale " << triggerPrescales->getPrescaleForIndex(i) <<endl;
-     //": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
+     ": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !tr[i].accept() == 1 ) continue;
      //if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
      //if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
@@ -561,7 +560,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     )                                             || 
     abs(jet->eta())                       >  2.4
     )                                             && 
-    abs(jet->eta())                       <= 2.6  &&
+    //abs(jet->eta())                       <= 2.6  &&
     jet->pt()                             >  20
     ) {
     pBH += jet->p4();
@@ -607,7 +606,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     // Electron Medium ID
     if(
     e->pt()           		  >  20.    &&
-    fabs(e->eta())    		  <  2.4    &&
+    fabs(e->eta())    		  <  2.5    &&
     (*medium_id_decisions)[e]      == 1      
     ){  
    
