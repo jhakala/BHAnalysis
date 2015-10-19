@@ -125,6 +125,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::InputTag rechitELabel_;
       edm::InputTag pvSrc_;
       edm::InputTag triggerLabel_;
+      edm::InputTag filterLabel_;
       edm::InputTag rhoLabel_;
       
 
@@ -269,7 +270,23 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   //bool firedHLT_PFHT600_v2;
   //bool firedHLT_PFHT650_v2;
   bool firedHLT_PFHT800_v2;
-  
+
+
+  // bool passed_HBHENoiseFilter;
+  // bool passed_HBHENoiseIsoFilter;
+  bool passed_CSCTightHaloFilter;
+  // bool passed_hcalLaserEventFilter;
+  bool passed_EcalDeadCellTriggerPrimitiveFilter;
+  bool passed_EcalDeadCellBoundaryEnergyFilter;
+  bool passed_goodVertices;
+  bool passed_eeBadScFilter;
+  // bool passed_ecalLaserCorrFilter;
+  // bool passed_trkPOGFilters;
+  // bool passed_trkPOG_manystripclus53X;
+  // bool passed_trkPOG_toomanystripclus53X;
+  // bool passed_trkPOG_logErrorTooManyClusters;
+  bool passed_METFilters;
+  //TODO 
   double Reliso_el;
   double Reliso_mu;
   int pass_eleID_medium;      
@@ -291,6 +308,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
   pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
+  filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
   rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
   isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
   DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
@@ -500,12 +518,32 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //firedHLT_PFHT600_v2  = false;
    //firedHLT_PFHT650_v2  = false;
    firedHLT_PFHT800_v2  = false;
+   //TODO
    
    TriggerResults tr;
    Handle<TriggerResults> h_trigRes;
    iEvent.getByLabel(triggerLabel_, h_trigRes);
 
-   tr = *h_trigRes;
+   // MET filter results   
+   // passed_HBHENoiseFilter = false;
+   // passed_HBHENoiseIsoFilter = false;
+   passed_CSCTightHaloFilter = false;
+   // passed_hcalLaserEventFilter = false;
+   passed_EcalDeadCellTriggerPrimitiveFilter = false;
+   passed_EcalDeadCellBoundaryEnergyFilter = false;
+   passed_goodVertices = false;
+   passed_eeBadScFilter = false;
+   // passed_ecalLaserCorrFilter = false;
+   // passed_trkPOGFilters = false;
+   // passed_trkPOG_manystripclus53X = false;
+   // passed_trkPOG_toomanystripclus53X = false;
+   // passed_trkPOG_logErrorTooManyClusters = false;
+   passed_METFilters = false;
+
+   TriggerResults fr;
+   Handle<TriggerResults> h_filtRes;
+   iEvent.getByLabel(filterLabel_, h_filtRes);
+   fr = *h_filtRes;
   
    std::vector<string> triggerList;
    Service<service::TriggerNamesService> tns;
@@ -527,6 +565,33 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      //if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
      //if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
      if( triggerList[i] == "HLT_PFHT800_v2")  { firedHLT_PFHT800_v2  = true; }
+
+   }
+   std::vector<string> filterList;
+   Service<service::TriggerNamesService> fns;
+   bool foundFilterNames = fns->getTrigPaths(fr,filterList);
+   if (!foundFilterNames) std::cout << "Could not get filter names!\n";
+   if (fr.size()!=filterList.size()) std::cout << "ERROR: length of filter names and paths not the same: " 
+                                                << filterList.size() << "," << fr.size() << endl;
+   // dump filter list at first event
+   for (unsigned int i=0; i< fr.size(); i++) {
+     //std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
+     // ": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     if ( !fr[i].accept() == 1 ) continue;
+     // if( filterList[i] == "Flag_HBHENoiseFilter")                     {  passed_HBHENoiseFilter = true; }    // needs to be re-run manually
+     // if( filterList[i] == "Flag_HBHENoiseIsoFilter")                  { passed_HBHENoiseIsoFilter = true; }  // needs to be re-run manually
+     if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
+     // if( filterList[i] == "Flag_hcalLaserEventFilter")                { passed_hcalLaserEventFilter = true; } // deprecated
+     if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
+     if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
+     if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
+     if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
+     // if( filterList[i] == "Flag_ecalLaserCorrFilter")                 { passed_ecalLaserCorrFilter = true; } // deprecated
+     // if( filterList[i] == "Flag_trkPOGFilters")                       { passed_trkPOGFilters = true; } // deprecated
+     // if( filterList[i] == "Flag_trkPOG_manystripclus53X")             { passed_trkPOG_manystripclus53X = true; } // deprecated
+     // if( filterList[i] == "Flag_trkPOG_toomanystripclus53X")          { passed_trkPOG_toomanystripclus53X = true; } // deprecated
+     // if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
+     if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
 
    }
   
@@ -1023,6 +1088,21 @@ void BHAnalyzerTLBSM::beginJob()
   //tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/B");
   //tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/B");
   tree->Branch("firedHLT_PFHT800_v2",&firedHLT_PFHT800_v2,"firedHLT_PFHT800_v2/B");
+
+  //tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/B"); 
+  //tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/B"); 
+  tree->Branch("passed_CSCTightHaloFilter",&passed_CSCTightHaloFilter,"passed_CSCTightHaloFilter/B");
+  //tree->Branch("passed_hcalLaserEventFilter", &passed_hcalLaserEventFilter, "passed_hcalLaserEventFilter/B"); 
+  tree->Branch("passed_EcalDeadCellTriggerPrimitiveFilter", &passed_EcalDeadCellTriggerPrimitiveFilter, "passed_EcalDeadCellTriggerPrimitiveFilter/B"); 
+  tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter", &passed_EcalDeadCellBoundaryEnergyFilter, "passed_EcalDeadCellBoundaryEnergyFilter/B"); 
+  tree->Branch("passed_goodVertices", &passed_goodVertices, "passed_goodVertices/B"); 
+  tree->Branch("passed_eeBadScFilter", &passed_eeBadScFilter, "passed_eeBadScFilter/B"); 
+  //tree->Branch("passed_ecalLaserCorrFilter", &passed_ecalLaserCorrFilter, "passed_ecalLaserCorrFilter/B"); 
+  //tree->Branch("passed_trkPOGFilters", &passed_trkPOGFilters, "passed_trkPOGFilters/B"); 
+  //tree->Branch("passed_trkPOG_manystripclus53X", &passed_trkPOG_manystripclus53X, "passed_trkPOG_manystripclus53X/B"); 
+  //tree->Branch("passed_trkPOG_toomanystripclus53X", &passed_trkPOG_toomanystripclus53X, "passed_trkPOG_toomanystripclus53X/B"); 
+  //tree->Branch("passed_trkPOG_logErrorTooManyClusters", &passed_trkPOG_logErrorTooManyClusters, "passed_trkPOG_logErrorTooManyClusters/B"); 
+  tree->Branch("passed_METFilters", &passed_METFilters, "passed_METFilters/B"); 
     
   for (size_t i=0; i<cutNames_.size(); ++i)
     createHistogram(cutNames_[i]);

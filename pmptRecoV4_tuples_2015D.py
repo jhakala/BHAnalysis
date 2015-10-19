@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms 
+#from RecoMET.METFilters.eeBadScFilter_cfi import *
 
 process = cms.Process('ANA')
 
@@ -19,7 +20,7 @@ process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True)
 )
 
-# HCAL filter (next 2 lines) added on 24 July 2015
+# HBHE noise filter (next 2 lines) added on 24 July 2015
 process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
 process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
 
@@ -27,8 +28,12 @@ process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
    inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
    reverseDecision = cms.bool(False)
 )
+
+# Bad EE supercrystal filter
+#process.load(eeBadScFilter)
+
 # How many events to process
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(50))
 #configurable options ==============================================
 runOnData=True #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
@@ -222,6 +227,7 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   eeRecHitTag = cms.untracked.InputTag("reducedEgamma", "reducedEERecHits"),
   primaryVertex = cms.untracked.InputTag("offlineSlimmedPrimaryVertices"),
   triggerTag = cms.untracked.InputTag("TriggerResults","","HLT"),
+  filterTag = cms.untracked.InputTag("TriggerResults","","RECO"),
   prescales = cms.InputTag("patTrigger"), 
   verticesMiniAOD     = cms.InputTag("offlineSlimmedPrimaryVertices"),
   conversionsMiniAOD  = cms.InputTag('reducedEgamma:reducedConversions'),
@@ -240,7 +246,11 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
 )
 
 
-process.p = cms.Path(process.HBHENoiseFilterResultProducer* #produces HBHE bools
-	process.ApplyBaselineHBHENoiseFilter*  #reject events based 
-	(process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) * process.bhana)
+process.p = cms.Path(
+  process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
+  process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
+#  process.eeBadScFilter *                 # apply the EE bad supercrystal filter
+  (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
+  process.bhana
+)
 process.p +=cms.Sequence(process.JEC)
