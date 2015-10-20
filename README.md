@@ -26,14 +26,14 @@ The relevant things to customize for running on the grid are:
 - lumiMask -- for processing data, this should point toward the golden JSON.
 - storageSite -- this should point to your T2 or T3 where you have write access.
 
-###iiia) Run for data/mc on lxplus locally
+###iiia) Run on data/mc on lxplus locally
 ```
 cd BHAnalysis
 cmsenv
 cmsRun pmptRecoV4_tuples_2015D.py
 ```
 
-###iiib) Run for data/mc on lxplus on the grid using CRAB3
+###iiib) Run on data/mc on lxplus on the grid using CRAB3
 
 ```
 cd BHAnalysis
