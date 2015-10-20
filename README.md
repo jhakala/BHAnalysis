@@ -1,8 +1,7 @@
 # BHAnalysis
-##1) INSTRUCTION TO RUN NTUPLIZER ON LXPLUS
+##1) Instructions
 -------------------------------------------
 ###i) Compile the nTuplizer against CMSSW_7_4_14
-For running on lxplus, do:
 ```
 cmsrel CMSSW_7_4_14
 mkdir CMSSW_7_4_14/src/<some dir>
@@ -10,6 +9,7 @@ cd CMSSW_7_4_14/src/<some dir>
 git clone https://github.com/jhakala/BHAnalysis.git
 scram b -j8
 ```
+Tested on lxplus.
 ###iia) Customize pmptRecoV4_tuples_2015D.py
 For a particular task, the relevant things to customize are:
 - runOnData -- should be True for data, False for MC.
@@ -26,14 +26,14 @@ The relevant things to customize for running on the grid are:
 - lumiMask -- for processing data, this should point toward the golden JSON.
 - storageSite -- this should point to your T2 or T3 where you have write access.
 
-###iiia) Run on data/mc on lxplus locally
+###iiia) Run on data/mc locally
 ```
 cd BHAnalysis
 cmsenv
 cmsRun pmptRecoV4_tuples_2015D.py
 ```
 
-###iiib) Run on data/mc on lxplus on the grid using CRAB3
+###iiib) Run on data/mc over the grid using CRAB3
 
 ```
 cd BHAnalysis
