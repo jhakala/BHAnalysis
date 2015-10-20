@@ -4,8 +4,12 @@
 ###i) Compile the nTuplizer against CMSSW_7_4_14
 ```
 cmsrel CMSSW_7_4_14
-mkdir CMSSW_7_4_14/src/<some dir>
-cd CMSSW_7_4_14/src/<some dir>
+cd CMSSW_7_4_14/src
+cmsenv
+git cms-merge-topic ikrav:egm_id_7.4.12_v1
+scram b -j12
+mkdir <some dir>
+cd <some dir>
 git clone https://github.com/jhakala/BHAnalysis.git
 scram b -j8
 ```
