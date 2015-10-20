@@ -29,6 +29,12 @@ process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
    reverseDecision = cms.bool(False)
 )
 
+
+process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
+    inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
+    reverseDecision = cms.bool(False)
+)
+
 # Bad EE supercrystal filter
 #process.load(eeBadScFilter)
 
@@ -249,6 +255,7 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
 process.p = cms.Path(
   process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
   process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
+  process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
 #  process.eeBadScFilter *                 # apply the EE bad supercrystal filter
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
   process.bhana
