@@ -555,8 +555,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                                                 << triggerList.size() << "," << tr.size() << endl;
    // dump trigger list at first event
    for (unsigned int i=0; i< tr.size(); i++) {
-     //std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
-     //": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
+     ": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !tr[i].accept() == 1 ) continue;
      //if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
      //if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
