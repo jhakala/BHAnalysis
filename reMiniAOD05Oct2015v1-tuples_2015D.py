@@ -53,7 +53,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v4'
+  process.GlobalTag.globaltag = '74X_dataRun2_reMiniAOD_v0'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = 'MCRUN2_74_V9'
