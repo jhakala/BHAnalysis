@@ -547,14 +547,14 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
    std::vector<string> triggerList;
    Service<service::TriggerNamesService> tns;
-   bool foundNames = tns->getTrigPaths(tr,triggerList);
+   bool foundNames = tns->getTrigPaths(*h_trigRes, triggerList);
    if (!foundNames) std::cout << "Could not get trigger names!\n";
    if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " 
                                                 << triggerList.size() << "," << tr.size() << endl;
    // dump trigger list at first event
    for (unsigned int i=0; i< tr.size(); i++) {
-     //std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
-     //": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
+     ": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !tr[i].accept() == 1 ) continue;
      //if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
      //if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
@@ -569,14 +569,14 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
    std::vector<string> filterList;
    Service<service::TriggerNamesService> fns;
-   bool foundFilterNames = fns->getTrigPaths(fr,filterList);
+   bool foundFilterNames = fns->getTrigPaths(*h_filtRes, filterList);
    if (!foundFilterNames) std::cout << "Could not get filter names!\n";
    if (fr.size()!=filterList.size()) std::cout << "ERROR: length of filter names and paths not the same: " 
                                                 << filterList.size() << "," << fr.size() << endl;
    // dump filter list at first event
    for (unsigned int i=0; i< fr.size(); i++) {
-     //std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
-     // ": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
+      ": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !fr[i].accept() == 1 ) continue;
      // if( filterList[i] == "Flag_HBHENoiseFilter")                     {  passed_HBHENoiseFilter = true; }    // needs to be re-run manually
      // if( filterList[i] == "Flag_HBHENoiseIsoFilter")                  { passed_HBHENoiseIsoFilter = true; }  // needs to be re-run manually
