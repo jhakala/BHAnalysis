@@ -523,6 +523,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    TriggerResults tr;
    Handle<TriggerResults> h_trigRes;
    iEvent.getByLabel(triggerLabel_, h_trigRes);
+   tr = *h_trigRes;
 
    // MET filter results   
    // passed_HBHENoiseFilter = false;
@@ -576,7 +577,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // dump filter list at first event
    for (unsigned int i=0; i< fr.size(); i++) {
      //std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
-     // ": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+     //": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
      if ( !fr[i].accept() == 1 ) continue;
      // if( filterList[i] == "Flag_HBHENoiseFilter")                     {  passed_HBHENoiseFilter = true; }    // needs to be re-run manually
      // if( filterList[i] == "Flag_HBHENoiseIsoFilter")                  { passed_HBHENoiseIsoFilter = true; }  // needs to be re-run manually

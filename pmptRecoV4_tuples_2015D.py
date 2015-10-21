@@ -110,7 +110,7 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 25000
 
 process.TFileService=cms.Service("TFileService",
-        fileName=cms.string("ntuple_output_JohnTest.root"),
+        fileName=cms.string("ntuple_output.root"),
         closeFileFast = cms.untracked.bool(True)
 )
 
