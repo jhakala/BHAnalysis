@@ -160,7 +160,6 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
       //TTree
       TTree* tree;
-      //TODO check why these have different sizes in the output ntuple
       float JetE[25];
       float JetPx[25];
       float JetPy[25];
