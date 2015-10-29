@@ -200,12 +200,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       float ST;
       float mBH;
       float Met;
-      float MetE;
       float MetPx;
       float MetPy;
-      float MetPz;
-      float MetPt;      
-      float MetEt;      
       float MetPhi;      
       float Sphericity;
       float JetArr[4];      
@@ -490,12 +486,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
    ST += Met;
    
-   MetE = mets[0].energy();
    MetPx = mets[0].px();
    MetPy = mets[0].py();
-   MetPz = mets[0].pz();
-   MetPt = mets[0].pt();
-   MetEt = mets[0].et();
       
    //Sphericity
    float sumPx2=mets[0].px()*mets[0].px();
@@ -1016,12 +1008,8 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("ST",&ST,"ST/F");
   tree->Branch("mBH",&mBH,"mBH/F");
   tree->Branch("Met",&Met,"Met/F");
-  tree->Branch("MetE",&MetE,"MetE/F");
   tree->Branch("MetPx",&MetPx,"MetPx/F");
   tree->Branch("MetPy",&MetPy,"MetPy/F");
-  tree->Branch("MetPz",&MetPz,"MetPz/F");
-  tree->Branch("MetPt",&MetPt,"MetPt/F");
-  tree->Branch("MetEt",&MetEt,"MetEt/F");
   tree->Branch("MetPhi",&MetPhi,"MetPhi/F");   
   tree->Branch("Sphericity", &Sphericity, "Sphericity/F");
   tree->Branch("Jet",JetArr,"JetArr[4]");   
