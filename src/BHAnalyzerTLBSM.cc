@@ -160,6 +160,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
       edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
       //TTree
       TTree* tree;
+      //TODO check why these have different sizes in the output ntuple
       float JetE[25];
       float JetPx[25];
       float JetPy[25];
@@ -348,6 +349,40 @@ BHAnalyzerTLBSM::~BHAnalyzerTLBSM()
 void
 BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+
+   // reset all variables:
+   std::fill(std::begin( JetE   ),  std::end( JetE   ),   0.    );
+   std::fill(std::begin( JetPx  ),  std::end( JetPx  ),   0.    );
+   std::fill(std::begin( JetPy  ),  std::end( JetPy  ),   0.    );
+   std::fill(std::begin( JetPz  ),  std::end( JetPz  ),   0.    );
+   std::fill(std::begin( JetPt  ),  std::end( JetPt  ),   0.    );
+   std::fill(std::begin( JetEt  ),  std::end( JetEt  ),   0.    );
+   std::fill(std::begin( JetEta ),  std::end( JetEta ),  -9999. );
+   std::fill(std::begin( JetPhi ),  std::end( JetPhi ),  -9999. );
+   std::fill(std::begin( EleE   ),  std::end( EleE   ),   0.    );
+   std::fill(std::begin( ElePx  ),  std::end( ElePx  ),   0.    );
+   std::fill(std::begin( ElePy  ),  std::end( ElePy  ),   0.    );
+   std::fill(std::begin( ElePz  ),  std::end( ElePz  ),   0.    );
+   std::fill(std::begin( ElePt  ),  std::end( ElePt  ),   0.    );
+   std::fill(std::begin( EleEt  ),  std::end( EleEt  ),   0.    );
+   std::fill(std::begin( EleEta ),  std::end( EleEta ),  -9999. );
+   std::fill(std::begin( ElePhi ),  std::end( ElePhi ),  -9999. );
+   std::fill(std::begin( MuE    ),  std::end( MuE    ),   0.    );
+   std::fill(std::begin( MuPx   ),  std::end( MuPx   ),   0.    );
+   std::fill(std::begin( MuPy   ),  std::end( MuPy   ),   0.    );
+   std::fill(std::begin( MuPz   ),  std::end( MuPz   ),   0.    );
+   std::fill(std::begin( MuPt   ),  std::end( MuPt   ),   0.    );
+   std::fill(std::begin( MuEt   ),  std::end( MuEt   ),   0.    );
+   std::fill(std::begin( MuEta  ),  std::end( MuEta  ),  -9999. );
+   std::fill(std::begin( MuPhi  ),  std::end( MuPhi  ),  -9999. );
+   std::fill(std::begin( PhE    ),  std::end( PhE    ),   0.    );
+   std::fill(std::begin( PhPx   ),  std::end( PhPx   ),   0.    );
+   std::fill(std::begin( PhPy   ),  std::end( PhPy   ),   0.    );
+   std::fill(std::begin( PhPz   ),  std::end( PhPz   ),   0.    );
+   std::fill(std::begin( PhPt   ),  std::end( PhPt   ),   0.    );
+   std::fill(std::begin( PhEt   ),  std::end( PhEt   ),   0.    );
+   std::fill(std::begin( PhEta  ),  std::end( PhEta  ),  -9999. );
+   std::fill(std::begin( PhPhi  ),  std::end( PhPhi  ),  -9999. );
    using namespace edm;
 
    runno = iEvent.id().run();
@@ -721,7 +756,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   ph->pt()                        >   20       &&
   abs(ph->eta())                  <   2.4      &&
   (*medium_id_decisions_ph)[ph]   ==  1
-  )
+  ){
   
   //If not a spike, increment # photons
   ++ngoodphotons;
@@ -749,6 +784,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   //(*loose_id_decisions_ph)[ph];
   //(*tight_id_decisions_ph)[ph];      
   PhPhi[ngoodphotons-1] = ph->phi();
+  }
   
 }
   for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
@@ -793,49 +829,6 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }//muonID
   }
    
-   for (int i=0;i<25;++i) {
-     if (i>=ngoodjets) {
-       JetE[i]=0.;
-       JetPx[i]=0.;
-       JetPy[i]=0.;
-       JetPz[i]=0.;
-       JetPt[i]=0.;
-       JetEt[i]=0.;
-       JetEta[i]=99.;
-       JetPhi[i]=99.;
-     }
-     if (i>=ngoodelectrons) {
-       EleE[i]=0.;
-       ElePx[i]=0.;
-       ElePy[i]=0.;
-       ElePz[i]=0.;
-       ElePt[i]=0.;
-       EleEt[i]=0.;
-       EleEta[i]=99.;
-       ElePhi[i]=99.;
-     }
-     if (i>=ngoodphotons) {
-       PhE[i]=0.;
-       PhPx[i]=0.;
-       PhPy[i]=0.;
-       PhPz[i]=0.;
-       PhPt[i]=0.;
-       PhEt[i]=0.;
-       PhEta[i]=99.;
-       PhPhi[i]=99.;
-       
-     }       
-     if (i>=ngoodmuons) {
-       MuE[i]=0.;
-       MuPx[i]=0.;
-       MuPy[i]=0.;
-       MuPz[i]=0.;
-       MuPt[i]=0.;
-       MuEt[i]=0.;
-       MuEta[i]=99.;
-       MuPhi[i]=99.;
-     }         
-   }
    
    //Sorting
    std::sort(leadingJets.begin(), leadingJets.end());
@@ -984,14 +977,14 @@ void BHAnalyzerTLBSM::beginJob()
   //h_norm = new TH1F("h_norm","",500,0,50000);
 
   tree->Branch("NJets",&NJets,"NJets/I");
-  tree->Branch("JetE",&JetE,"JetE[NJets]/F");
-  tree->Branch("JetPx",&JetPx,"JetPx[NJets]/F");
-  tree->Branch("JetPy",&JetPy,"JetPy[NJets]/F");
-  tree->Branch("JetPz",&JetPz,"JetPz[NJets]/F");
-  tree->Branch("JetPt",&JetPt,"JetPt[NJets]/F");
-  tree->Branch("JetEt",&JetEt,"JetEt[NJets]/F");
-  tree->Branch("JetEta",&JetEta,"JetEta[NJets]/F");
-  tree->Branch("JetPhi",&JetPhi,"JetPhi[NJets]/F");
+  tree->Branch("JetE",&JetE,"JetE[25]/F");
+  tree->Branch("JetPx",&JetPx,"JetPx[25]/F");
+  tree->Branch("JetPy",&JetPy,"JetPy[25]/F");
+  tree->Branch("JetPz",&JetPz,"JetPz[25]/F");
+  tree->Branch("JetPt",&JetPt,"JetPt[25]/F");
+  tree->Branch("JetEt",&JetEt,"JetEt[25]/F");
+  tree->Branch("JetEta",&JetEta,"JetEta[25]/F");
+  tree->Branch("JetPhi",&JetPhi,"JetPhi[25]/F");
 
   tree->Branch("EleE" ,&EleE, "EleE[25]/F");
   tree->Branch("ElePx",&ElePx,"ElePx[25]/F");
@@ -1080,30 +1073,30 @@ void BHAnalyzerTLBSM::beginJob()
   tree->Branch("isRealData",&isRealData,"isRealData/I");
   tree->Branch("muon_d0",&muon_d0,"muon_d0/F");                                                      
   
-  //tree->Branch("firedHLT_PFJet60_v2",&firedHLT_PFJet60_v2,"firedHLT_PFJet60_v2/B");
-  //tree->Branch("firedHLT_PFJet140_v2",&firedHLT_PFJet140_v2,"firedHLT_PFJet140_v2/B");
-  //tree->Branch("firedHLT_PFJet450_v2",&firedHLT_PFJet450_v2,"firedHLT_PFJet450_v2/B");
-  //tree->Branch("firedHLT_PFHT300_v1",&firedHLT_PFHT300_v1,"firedHLT_PFHT300_v1/B");
-  //tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/B");
-  tree->Branch("firedHLT_PFHT475_v2",&firedHLT_PFHT475_v2,"firedHLT_PFHT475_v2/B");
-  //tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/B");
-  //tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/B");
-  tree->Branch("firedHLT_PFHT800_v2",&firedHLT_PFHT800_v2,"firedHLT_PFHT800_v2/B");
+  //tree->Branch("firedHLT_PFJet60_v2",&firedHLT_PFJet60_v2,"firedHLT_PFJet60_v2/O");
+  //tree->Branch("firedHLT_PFJet140_v2",&firedHLT_PFJet140_v2,"firedHLT_PFJet140_v2/O");
+  //tree->Branch("firedHLT_PFJet450_v2",&firedHLT_PFJet450_v2,"firedHLT_PFJet450_v2/O");
+  //tree->Branch("firedHLT_PFHT300_v1",&firedHLT_PFHT300_v1,"firedHLT_PFHT300_v1/O");
+  //tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/O");
+  tree->Branch("firedHLT_PFHT475_v2",&firedHLT_PFHT475_v2,"firedHLT_PFHT475_v2/O");
+  //tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/O");
+  //tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/O");
+  tree->Branch("firedHLT_PFHT800_v2",&firedHLT_PFHT800_v2,"firedHLT_PFHT800_v2/O");
 
-  //tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/B"); 
-  //tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/B"); 
-  tree->Branch("passed_CSCTightHaloFilter",&passed_CSCTightHaloFilter,"passed_CSCTightHaloFilter/B");
-  //tree->Branch("passed_hcalLaserEventFilter", &passed_hcalLaserEventFilter, "passed_hcalLaserEventFilter/B"); 
-  tree->Branch("passed_EcalDeadCellTriggerPrimitiveFilter", &passed_EcalDeadCellTriggerPrimitiveFilter, "passed_EcalDeadCellTriggerPrimitiveFilter/B"); 
-  tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter", &passed_EcalDeadCellBoundaryEnergyFilter, "passed_EcalDeadCellBoundaryEnergyFilter/B"); 
-  tree->Branch("passed_goodVertices", &passed_goodVertices, "passed_goodVertices/B"); 
-  tree->Branch("passed_eeBadScFilter", &passed_eeBadScFilter, "passed_eeBadScFilter/B"); 
-  //tree->Branch("passed_ecalLaserCorrFilter", &passed_ecalLaserCorrFilter, "passed_ecalLaserCorrFilter/B"); 
-  //tree->Branch("passed_trkPOGFilters", &passed_trkPOGFilters, "passed_trkPOGFilters/B"); 
-  //tree->Branch("passed_trkPOG_manystripclus53X", &passed_trkPOG_manystripclus53X, "passed_trkPOG_manystripclus53X/B"); 
-  //tree->Branch("passed_trkPOG_toomanystripclus53X", &passed_trkPOG_toomanystripclus53X, "passed_trkPOG_toomanystripclus53X/B"); 
-  //tree->Branch("passed_trkPOG_logErrorTooManyClusters", &passed_trkPOG_logErrorTooManyClusters, "passed_trkPOG_logErrorTooManyClusters/B"); 
-  tree->Branch("passed_METFilters", &passed_METFilters, "passed_METFilters/B"); 
+  //tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
+  //tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
+  tree->Branch("passed_CSCTightHaloFilter",&passed_CSCTightHaloFilter,"passed_CSCTightHaloFilter/O");
+  //tree->Branch("passed_hcalLaserEventFilter", &passed_hcalLaserEventFilter, "passed_hcalLaserEventFilter/O"); 
+  tree->Branch("passed_EcalDeadCellTriggerPrimitiveFilter", &passed_EcalDeadCellTriggerPrimitiveFilter, "passed_EcalDeadCellTriggerPrimitiveFilter/O"); 
+  tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter", &passed_EcalDeadCellBoundaryEnergyFilter, "passed_EcalDeadCellBoundaryEnergyFilter/O"); 
+  tree->Branch("passed_goodVertices", &passed_goodVertices, "passed_goodVertices/O"); 
+  tree->Branch("passed_eeBadScFilter", &passed_eeBadScFilter, "passed_eeBadScFilter/O"); 
+  //tree->Branch("passed_ecalLaserCorrFilter", &passed_ecalLaserCorrFilter, "passed_ecalLaserCorrFilter/O"); 
+  //tree->Branch("passed_trkPOGFilters", &passed_trkPOGFilters, "passed_trkPOGFilters/O"); 
+  //tree->Branch("passed_trkPOG_manystripclus53X", &passed_trkPOG_manystripclus53X, "passed_trkPOG_manystripclus53X/O"); 
+  //tree->Branch("passed_trkPOG_toomanystripclus53X", &passed_trkPOG_toomanystripclus53X, "passed_trkPOG_toomanystripclus53X/O"); 
+  //tree->Branch("passed_trkPOG_logErrorTooManyClusters", &passed_trkPOG_logErrorTooManyClusters, "passed_trkPOG_logErrorTooManyClusters/O"); 
+  tree->Branch("passed_METFilters", &passed_METFilters, "passed_METFilters/O"); 
     
   for (size_t i=0; i<cutNames_.size(); ++i)
     createHistogram(cutNames_[i]);
