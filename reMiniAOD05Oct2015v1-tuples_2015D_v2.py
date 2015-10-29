@@ -12,7 +12,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 # Message Logger settings
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.destinations = ['cout', 'cerr']
-process.MessageLogger.cerr.FwkReport.reportEvery = 25000
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 # Set the process options -- Display summary at the end, enable unscheduled execution
 process.options = cms.untracked.PSet(
@@ -39,7 +39,7 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 #process.load(eeBadScFilter)
 
 # How many events to process
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(50))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #configurable options ==============================================
 runOnData=True #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
@@ -107,7 +107,7 @@ process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJe
 #jecUncertaintyFile="PhysicsTools/PatUtils/data/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
-process.MessageLogger.cerr.FwkReport.reportEvery = 25000
+process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.TFileService=cms.Service("TFileService",
         fileName=cms.string("ntuple_output.root"),
