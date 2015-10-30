@@ -306,6 +306,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
   triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
   filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
   rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
+  // TODO : does isMCBH do anything?
   isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
   DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
   
