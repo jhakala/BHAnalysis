@@ -53,15 +53,14 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  #process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v4'
+  process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v4'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
   process.GlobalTag.globaltag = '74X_mcRun2_asymptotic_realisticBS_v1'
 
-  Char
-##Char## For applying jet/met corrections from a sql
-#iCharf usePrivateSQlite:
+#### For applying jet/met corrections from a sql
+#if usePrivateSQlite:
 #  from CondCore.DBCommon.CondDBSetup_cfi import *
 #  import os
 #  if runOnData:
@@ -139,7 +138,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 #  fname = 'root://eoscms.cern.ch//store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/001C7571-0511-E511-9B8E-549F35AE4FAF.root'
 # Define the input source
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
+	'root://eoscms.cern.ch//store/group/lpctthrun2/UVaSync/SignalMiniAOD/BlackMax_n2/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2_MiniAOD/151021_135357/0000/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2_MiniAOD_1.root'
  )
 )
 
