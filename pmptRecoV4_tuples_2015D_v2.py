@@ -39,14 +39,15 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 #process.load(eeBadScFilter)
 
 # How many events to process
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(50))
+# TODO
+
 #configurable options ==============================================
 runOnData=True #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual 
-#corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or 
-#for analysis checks and developments (not the official recommendation!).
+applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
 #from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
@@ -59,33 +60,29 @@ else:
   process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 
 #### For applying jet/met corrections from a sql
-#if usePrivateSQlite:
-#  from CondCore.DBCommon.CondDBSetup_cfi import *
-#  import os
-#  if runOnData:
-#    jecfile="Summer15_25nsV5_DATA"
-#  else:
-#    jecfile="Summer15_50nsV4_MC"
-# # dBFile can be called by following two ways
-# # dBFile = os.path.expandvars("$CMSSW_BASE/src/PhysicsTools/PatAlgos/test/"+jecfile+".db")
-# # dBFile = os.path.expandvars("/afs/cern.ch/work/a/asaddiqu/BH_CMS/CMSSW_7_4_6_patch1/src/BH_CMS2015/BHAnalysis-master/jec/"+jecfile+".db")
-#  #dBFile = os.path.expandvars(jecfile+".db") #A try for crab
-#  process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-#    connect = cms.string( "sqlite_file:/afs/cern.ch/user/j/johakala/work/public/CMSSW_7_4_12_patch4/src/BH/BHAnalysis/Summer15_25nsV5_DATA.db" ),
-#    toGet =  cms.VPSet(
-#    cms.PSet(
-#      record = cms.string("JetCorrectionsRecord"),
-#      tag = cms.string("JetCorrectorParametersCollection_"+jecfile+"_AK4PF"),
-#      label= cms.untracked.string("AK4PF")
-#      ),
-#    cms.PSet(
-#      record = cms.string("JetCorrectionsRecord"),
-#      tag = cms.string("JetCorrectorParametersCollection_"+jecfile+"_AK4PFchs"),
-#      label= cms.untracked.string("AK4PFchs")
-#      ),
-#    )
-#    )
-#process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
+if usePrivateSQlite:
+  process.load("CondCore.DBCommon.CondDBCommon_cfi")
+  from CondCore.DBCommon.CondDBSetup_cfi import *
+  process.jec = cms.ESSource("PoolDBESSource",
+    DBParameters = cms.PSet(
+      messageLevel = cms.untracked.int32(0)
+      ),
+    timetype = cms.string('runnumber'),
+    toGet = cms.VPSet(
+    cms.PSet(
+        record = cms.string('JetCorrectionsRecord'),
+        tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PF'),
+        label  = cms.untracked.string('AK4PF')
+        ),
+    cms.PSet(
+      record = cms.string('JetCorrectionsRecord'),
+      tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
+      label  = cms.untracked.string('AK4PFchs')
+      ),
+    ), 
+    connect = cms.string('sqlite:Summer15_25nsV6_DATA.db')
+  )
+  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
 #-----------------For JEC-----------------
 process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
@@ -101,10 +98,6 @@ process.patJetsReapplyJEC = process.patJetsUpdated.clone(
   jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
   )
 process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
-#-------------------------------------------
-#uncertainty file (also can be called by following two ways)
-#jecUncertaintyFile="BH/BHAnalysis/Summer15_25nsV5_DATA/Summer15_25nsV5_DATA_UncertaintySources_AK4PFchs.txt"
-#jecUncertaintyFile="PhysicsTools/PatUtils/data/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 50000
@@ -129,15 +122,9 @@ process.out = cms.OutputModule('PoolOutputModule',
   overrideInputFileSplitLevels = cms.untracked.bool(True)
 )
 
-# Define the input source
-#if runOnData:
-#  fname = '
-
-#else:
-#  fname = 'root://eoscms.cern.ch//store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/001C7571-0511-E511-9B8E-549F35AE4FAF.root'
-# Define the input source
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
+'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
+#TODO
  )
 )
 
@@ -168,15 +155,15 @@ process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
 #  postfix="NoHF"
 #  )
 ### -------------------------------------------------------------------
-### the lines below remove the L2L3 residual corrections when processing data
+### remove the L2L3 residual corrections when processing data
 ### -------------------------------------------------------------------
-if not applyResiduals:
-  process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-  process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-  process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-  process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-  process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-  process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+#if not applyResiduals:
+#  process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+#  process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+#  process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+#  process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+#  process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+#  process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
   #if not useHFCandidates:
   #  process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
   #  process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
@@ -185,17 +172,10 @@ if not applyResiduals:
   #  process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
   #  process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
-#luminosity
 import FWCore.ParameterSet.Config as cms
 import FWCore.PythonUtilities.LumiList as LumiList
 if runOnData:
-	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
-
-#input file
-#import FWCore.Utilities.FileUtils as FileUtils
-#files2015data = FileUtils.loadListFromFile ('files.txt') 
-#readFiles = cms.untracked.vstring( *files2015data )
-#process.source.fileNames = readFiles
+	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt').getVLuminosityBlockRange()
 
 # Set up electron ID (VID framework)
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
@@ -213,7 +193,7 @@ for idmod in my_id_modules_el:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 switchOnVIDPhotonIdProducer(process, dataFormat)
-my_id_modules_ph = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_PHYS14_PU20bx25_V2_cff']
+my_id_modules_ph = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_50ns_V1_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules_ph:
@@ -243,11 +223,11 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
  
  # TODO: These need to be updated when Run2 25ns cut-based photonID comes available
-  phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-loose"),
-  phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-medium"),
-  phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-PHYS14-PU20bx25-V2-standalone-tight"),
+  phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-loose"),
+  phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-medium"),
+  phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-tight"),
  
-  MCLabel = cms.untracked.bool(True),                               
+  MCLabel = cms.untracked.bool(False),                               
   DEBUG = cms.untracked.bool(False)                               
 )
 
@@ -256,7 +236,6 @@ process.p = cms.Path(
   process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
   process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
   process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
-#  process.eeBadScFilter *                 # apply the EE bad supercrystal filter
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
   process.bhana
 )
