@@ -39,13 +39,10 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 #process.load(eeBadScFilter)
 
 # How many events to process
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(50))
-# TODO
-
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #configurable options ==============================================
 runOnData=True #data/MC switch
-usePrivateSQlite=False #use external JECs (sqlite file)
+usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
@@ -123,8 +120,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 )
 
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
-#TODO
+#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
  )
 )
 
