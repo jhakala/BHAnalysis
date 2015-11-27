@@ -97,7 +97,6 @@ process.patJetsReapplyJEC = process.patJetsUpdated.clone(
 process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
-process.MessageLogger.cerr.FwkReport.reportEvery = 50000
 
 process.TFileService=cms.Service("TFileService",
         fileName=cms.string("ntuple_output.root"),
@@ -189,7 +188,7 @@ for idmod in my_id_modules_el:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 switchOnVIDPhotonIdProducer(process, dataFormat)
-my_id_modules_ph = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_50ns_V1_cff']
+my_id_modules_ph = ['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Spring15_25ns_V1_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules_ph:
@@ -219,9 +218,9 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
  
  # TODO: These need to be updated when Run2 25ns cut-based photonID comes available
-  phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-loose"),
-  phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-medium"),
-  phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-50ns-V1-standalone-tight"),
+  phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
+  phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
+  phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
  
   MCLabel = cms.untracked.bool(False),                               
   DEBUG = cms.untracked.bool(False)                               
