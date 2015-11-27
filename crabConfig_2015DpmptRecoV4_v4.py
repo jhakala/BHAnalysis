@@ -7,7 +7,7 @@ config.General.transferOutputs = True
 config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'pmptRecoV4_tuples_2015D_v3.py'
+config.JobType.psetName = 'pmptRecoV4_tuples_2015D_v4.py'
 config.JobType.inputFiles=['Summer15_25nsV6_DATA.db','Summer15_25nsV6_DATA']
 
 config.Data.inputDataset = '/JetHT/Run2015D-PromptReco-v4/MINIAOD'
