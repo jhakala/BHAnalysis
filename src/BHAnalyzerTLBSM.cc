@@ -264,8 +264,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		//bool firedHLT_PFHT400_v1;
 		//bool firedHLT_PFHT600_v2;
 		//bool firedHLT_PFHT650_v2;
-		bool firedHLT_PFHT475_v2;
-		bool firedHLT_PFHT800_v2;
+		bool firedHLT_PFHT475_v1;
+		bool firedHLT_PFHT800_v1;
 
 
 		// bool passed_HBHENoiseFilter;
@@ -306,7 +306,6 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
 	filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
 	rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
-	// TODO : does isMCBH do anything?
 	isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
 	DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
 
@@ -462,8 +461,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	edm::Handle<edm::View<pat::Tau> > tauHandle;
 	iEvent.getByLabel(tauLabel_,tauHandle);
 
-	edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
-	iEvent.getByToken(triggerPrescales_, triggerPrescales);
+  if (!isMCBH) {
+		edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+		iEvent.getByToken(triggerPrescales_, triggerPrescales);
+  }
 	edm::View<pat::Photon>::const_iterator photon;
 	Handle<EcalRecHitCollection> Brechit;//barrel
 	Handle<EcalRecHitCollection> Erechit;//endcap
@@ -545,91 +546,92 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	// No scraping
 	bool noscrap = true;
 
-	// HLT results   
-	//firedHLT_PFJet60_v2  = false;
-	//firedHLT_PFJet140_v2 = false;
-	//firedHLT_PFJet450_v2 = false;
-	//firedHLT_PFHT300_v1  = false;
-	//firedHLT_PFHT400_v1  = false;
-	//firedHLT_PFHT600_v2  = false;
-	//firedHLT_PFHT650_v2  = false;
-	firedHLT_PFHT475_v2  = false;
-	firedHLT_PFHT800_v2  = false;
+  if (!isMCBH) {
+		// HLT results   
+		//firedHLT_PFJet60_v2  = false;
+		//firedHLT_PFJet140_v2 = false;
+		//firedHLT_PFJet450_v2 = false;
+		//firedHLT_PFHT300_v1  = false;
+		//firedHLT_PFHT400_v1  = false;
+		//firedHLT_PFHT600_v2  = false;
+		//firedHLT_PFHT650_v2  = false;
+		firedHLT_PFHT475_v1  = false;
+		firedHLT_PFHT800_v1  = false;
 
-	TriggerResults tr;
-	Handle<TriggerResults> h_trigRes;
-	iEvent.getByLabel(triggerLabel_, h_trigRes);
-	tr = *h_trigRes;
+		TriggerResults tr;
+		Handle<TriggerResults> h_trigRes;
+		iEvent.getByLabel(triggerLabel_, h_trigRes);
+		tr = *h_trigRes;
 
-	// MET filter results   
-	// passed_HBHENoiseFilter = false;
-	// passed_HBHENoiseIsoFilter = false;
-	// passed_hcalLaserEventFilter = false;
-	// passed_ecalLaserCorrFilter = false;
-	// passed_trkPOGFilters = false;
-	// passed_trkPOG_manystripclus53X = false;
-	// passed_trkPOG_toomanystripclus53X = false;
-	// passed_trkPOG_logErrorTooManyClusters = false;
-	passed_CSCTightHaloFilter = false;
-	passed_EcalDeadCellTriggerPrimitiveFilter = false;
-	passed_EcalDeadCellBoundaryEnergyFilter = false;
-	passed_goodVertices = false;
-	passed_eeBadScFilter = false;
-	passed_METFilters = false;
+		// MET filter results   
+		// passed_HBHENoiseFilter = false;
+		// passed_HBHENoiseIsoFilter = false;
+		// passed_hcalLaserEventFilter = false;
+		// passed_ecalLaserCorrFilter = false;
+		// passed_trkPOGFilters = false;
+		// passed_trkPOG_manystripclus53X = false;
+		// passed_trkPOG_toomanystripclus53X = false;
+		// passed_trkPOG_logErrorTooManyClusters = false;
+		passed_CSCTightHaloFilter = false;
+		passed_EcalDeadCellTriggerPrimitiveFilter = false;
+		passed_EcalDeadCellBoundaryEnergyFilter = false;
+		passed_goodVertices = false;
+		passed_eeBadScFilter = false;
+		passed_METFilters = false;
 
-	TriggerResults fr;
-	Handle<TriggerResults> h_filtRes;
-	iEvent.getByLabel(filterLabel_, h_filtRes);
-	fr = *h_filtRes;
+		TriggerResults fr;
+		Handle<TriggerResults> h_filtRes;
+		iEvent.getByLabel(filterLabel_, h_filtRes);
+		fr = *h_filtRes;
 
-	std::vector<string> triggerList;
-	Service<service::TriggerNamesService> tns;
-	bool foundNames = tns->getTrigPaths(*h_trigRes, triggerList);
-	if (!foundNames) std::cout << "Could not get trigger names!\n";
-	if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " 
-		<< triggerList.size() << "," << tr.size() << endl;
-	// dump trigger list at first event
-	for (unsigned int i=0; i< tr.size(); i++) {
-		//std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
-		//": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
-		if ( !tr[i].accept() == 1 ) continue;
-		//if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
-		//if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
-		//if( triggerList[i] == "HLT_PFJet450_v2") { firedHLT_PFJet450_v2 = true; }
-		//if( triggerList[i] == "HLT_PFHT300_v1")  { firedHLT_PFHT300_v1  = true; }
-		//if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
-		//if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
-		//if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
-		if( triggerList[i] == "HLT_PFHT475_v2")  { firedHLT_PFHT475_v2  = true; }
-		if( triggerList[i] == "HLT_PFHT800_v2")  { firedHLT_PFHT800_v2  = true; }
+		std::vector<string> triggerList;
+		Service<service::TriggerNamesService> tns;
+		bool foundNames = tns->getTrigPaths(*h_trigRes, triggerList);
+		if (!foundNames) std::cout << "Could not get trigger names!\n";
+		if (tr.size()!=triggerList.size()) std::cout << "ERROR: length of names and paths not the same: " 
+			<< triggerList.size() << "," << tr.size() << endl;
+		// dump trigger list at first event
+		for (unsigned int i=0; i< tr.size(); i++) {
+			//std::cout << "["<<i<<"] = " << triggerList[i]<<setw(40)<<
+			//": Prescale " << triggerPrescales->getPrescaleForIndex(i) << ": " << (tr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+			if ( !tr[i].accept() == 1 ) continue;
+			//if( triggerList[i] == "HLT_PFJet60_v2")  { firedHLT_PFJet60_v2  = true; }
+			//if( triggerList[i] == "HLT_PFJet140_v2") { firedHLT_PFJet140_v2 = true; }
+			//if( triggerList[i] == "HLT_PFJet450_v2") { firedHLT_PFJet450_v2 = true; }
+			//if( triggerList[i] == "HLT_PFHT300_v1")  { firedHLT_PFHT300_v1  = true; }
+			//if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
+			//if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
+			//if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
+			if( triggerList[i] == "HLT_PFHT475_v1")  { firedHLT_PFHT475_v1  = true; }
+			if( triggerList[i] == "HLT_PFHT800_v1")  { firedHLT_PFHT800_v1  = true; }
 
-	}
-	std::vector<string> filterList;
-	Service<service::TriggerNamesService> fns;
-	bool foundFilterNames = fns->getTrigPaths(*h_filtRes, filterList);
-	if (!foundFilterNames) std::cout << "Could not get filter names!\n";
-	if (fr.size()!=filterList.size()) std::cout << "ERROR: length of filter names and paths not the same: " 
-		<< filterList.size() << "," << fr.size() << endl;
-	// dump filter list at first event
-	for (unsigned int i=0; i< fr.size(); i++) {
-		//std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
-		//": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
-		if ( !fr[i].accept() == 1 ) continue;
-		// if( filterList[i] == "Flag_HBHENoiseFilter")                     {  passed_HBHENoiseFilter = true; }    // needs to be re-run manually
-		// if( filterList[i] == "Flag_HBHENoiseIsoFilter")                  { passed_HBHENoiseIsoFilter = true; }  // needs to be re-run manually
-		// if( filterList[i] == "Flag_hcalLaserEventFilter")                { passed_hcalLaserEventFilter = true; } // deprecated
-		// if( filterList[i] == "Flag_ecalLaserCorrFilter")                 { passed_ecalLaserCorrFilter = true; } // deprecated
-		// if( filterList[i] == "Flag_trkPOGFilters")                       { passed_trkPOGFilters = true; } // deprecated
-		// if( filterList[i] == "Flag_trkPOG_manystripclus53X")             { passed_trkPOG_manystripclus53X = true; } // deprecated
-		// if( filterList[i] == "Flag_trkPOG_toomanystripclus53X")          { passed_trkPOG_toomanystripclus53X = true; } // deprecated
-		// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
-		if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
-		if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
-		if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
-		if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
-		if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
-		if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
-
+		}
+		std::vector<string> filterList;
+		Service<service::TriggerNamesService> fns;
+		bool foundFilterNames = fns->getTrigPaths(*h_filtRes, filterList);
+		if (!foundFilterNames) std::cout << "Could not get filter names!\n";
+		if (fr.size()!=filterList.size()) std::cout << "ERROR: length of filter names and paths not the same: " 
+			<< filterList.size() << "," << fr.size() << endl;
+		// dump filter list at first event
+		for (unsigned int i=0; i< fr.size(); i++) {
+			//std::cout << "["<<i<<"] = " << filterList[i]<<setw(40)<<
+			//": " << (fr[i].accept() ? "Event Passed" : "Event Failed") << endl;
+			if ( !fr[i].accept() == 1 ) continue;
+			// if( filterList[i] == "Flag_HBHENoiseFilter")                     {  passed_HBHENoiseFilter = true; }    // needs to be re-run manually
+			// if( filterList[i] == "Flag_HBHENoiseIsoFilter")                  { passed_HBHENoiseIsoFilter = true; }  // needs to be re-run manually
+			// if( filterList[i] == "Flag_hcalLaserEventFilter")                { passed_hcalLaserEventFilter = true; } // deprecated
+			// if( filterList[i] == "Flag_ecalLaserCorrFilter")                 { passed_ecalLaserCorrFilter = true; } // deprecated
+			// if( filterList[i] == "Flag_trkPOGFilters")                       { passed_trkPOGFilters = true; } // deprecated
+			// if( filterList[i] == "Flag_trkPOG_manystripclus53X")             { passed_trkPOG_manystripclus53X = true; } // deprecated
+			// if( filterList[i] == "Flag_trkPOG_toomanystripclus53X")          { passed_trkPOG_toomanystripclus53X = true; } // deprecated
+			// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
+			if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
+			if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
+			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
+			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
+			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
+			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
+    }
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
@@ -1097,8 +1099,8 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/O");
 	//tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/O");
 	//tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/O");
-	tree->Branch("firedHLT_PFHT475_v2" ,  &firedHLT_PFHT475_v2 ,  "firedHLT_PFHT475_v2/O" );
-	tree->Branch("firedHLT_PFHT800_v2" ,  &firedHLT_PFHT800_v2 ,  "firedHLT_PFHT800_v2/O" );
+	tree->Branch("firedHLT_PFHT475_v1" ,  &firedHLT_PFHT475_v1 ,  "firedHLT_PFHT475_v1/O" );
+	tree->Branch("firedHLT_PFHT800_v1" ,  &firedHLT_PFHT800_v1 ,  "firedHLT_PFHT800_v1/O" );
 
 	//tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
 	//tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
