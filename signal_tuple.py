@@ -20,20 +20,22 @@ process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True)
 )
 
+runOnData=False #data/MC switch
 # HBHE noise filter (next 2 lines) added on 24 July 2015
-process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
-process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
+if runOnData:
+  process.load('CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi')
+  process.HBHENoiseFilterResultProducer.minZeros = cms.int32(99999)
 
-process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
-   inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
-   reverseDecision = cms.bool(False)
-)
+  process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+     inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+     reverseDecision = cms.bool(False)
+  )
 
 
-process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
-    inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
-    reverseDecision = cms.bool(False)
-)
+  process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
+      inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
+      reverseDecision = cms.bool(False)
+  )
 
 # Bad EE supercrystal filter
 #process.load(eeBadScFilter)
@@ -41,7 +43,6 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 # How many events to process
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #configurable options ==============================================
-runOnData=False #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual 
@@ -57,7 +58,7 @@ if runOnData:
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
-  process.GlobalTag.globaltag = '74X_mcRun2_asymptotic_realisticBS_v1'
+  process.GlobalTag.globaltag = '74X_mcRun2_asymptotic_v4'
 
 #### For applying jet/met corrections from a sql
 #if usePrivateSQlite:
@@ -138,7 +139,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 #  fname = 'root://eoscms.cern.ch//store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/001C7571-0511-E511-9B8E-549F35AE4FAF.root'
 # Define the input source
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-	'root://eoscms.cern.ch//store/group/lpctthrun2/UVaSync/SignalMiniAOD/BlackMax_n2/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2_MiniAOD/151021_135357/0000/BlackMaxLHArecord_BH1_BM_MD5000_MBH6000_n2_MiniAOD_1.root'
+	'file://SB_BM_EXTRA4_MBH5000_n6_MiniAOD_10.root'
  )
 )
 
@@ -254,12 +255,20 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
 )
 
 
-process.p = cms.Path(
-  process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
-  process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
-  process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
-#  process.eeBadScFilter *                 # apply the EE bad supercrystal filter
-  (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
-  process.bhana
-)
+process.p = cms.Path()
+if runOnData:
+  process.p = cms.Path(
+    process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
+    process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
+    process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
+  #  process.eeBadScFilter *                 # apply the EE bad supercrystal filter
+    (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
+    process.bhana
+  )
+
+else:
+  process.p = cms.Path(
+    (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
+    process.bhana
+  )
 process.p +=cms.Sequence(process.JEC)
