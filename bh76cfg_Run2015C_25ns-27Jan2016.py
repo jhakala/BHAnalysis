@@ -5,14 +5,15 @@ process = cms.Process('ANA')
 
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.Services_cff')
-process.load('Configuration.StandardSequences.Geometry_cff')
+#process.load('Configuration.StandardSequences.Geometry_cff')
+process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 # Message Logger settings
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.destinations = ['cout', 'cerr']
-process.MessageLogger.cerr.FwkReport.reportEvery = 50000
+process.MessageLogger.destinations = ['detailedInfo', 'critical', 'cout', 'cerr']
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 # Set the process options -- Display summary at the end, enable unscheduled execution
 process.options = cms.untracked.PSet(
@@ -39,10 +40,10 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 #process.load(eeBadScFilter)
 
 # How many events to process
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5))
 #configurable options ==============================================
 runOnData=True #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
+usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
@@ -51,50 +52,59 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '74X_dataRun2_v4'
+  process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 
 #### For applying jet/met corrections from a sql
-if usePrivateSQlite:
-  process.load("CondCore.DBCommon.CondDBCommon_cfi")
-  from CondCore.DBCommon.CondDBSetup_cfi import *
-  process.jec = cms.ESSource("PoolDBESSource",
-    DBParameters = cms.PSet(
-      messageLevel = cms.untracked.int32(0)
-      ),
-    timetype = cms.string('runnumber'),
-    toGet = cms.VPSet(
-    cms.PSet(
-        record = cms.string('JetCorrectionsRecord'),
-        tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PF'),
-        label  = cms.untracked.string('AK4PF')
-        ),
-    cms.PSet(
-      record = cms.string('JetCorrectionsRecord'),
-      tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
-      label  = cms.untracked.string('AK4PFchs')
-      ),
-    ), 
-    connect = cms.string('sqlite:Summer15_25nsV6_DATA.db')
-  )
-  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+#if usePrivateSQlite:
+#  process.load("CondCore.DBCommon.CondDBCommon_cfi")
+#  from CondCore.DBCommon.CondDBSetup_cfi import *
+#  process.jec = cms.ESSource("PoolDBESSource",
+#    DBParameters = cms.PSet(
+#      messageLevel = cms.untracked.int32(0)
+#      ),
+#    timetype = cms.string('runnumber'),
+#    toGet = cms.VPSet(
+#    cms.PSet(
+#        record = cms.string('JetCorrectionsRecord'),
+#        tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PF'),
+#        label  = cms.untracked.string('AK4PF')
+#        ),
+#    cms.PSet(
+#      record = cms.string('JetCorrectionsRecord'),
+#      tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
+#      label  = cms.untracked.string('AK4PFchs')
+#      ),
+#    ), 
+#    connect = cms.string('sqlite:Summer15_25nsV6_DATA.db')
+#  )
+#  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
 #-----------------For JEC-----------------
-process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
-process.patJetCorrFactorsReapplyJEC = process.patJetCorrFactorsUpdated.clone(
-  src = cms.InputTag("slimmedJets"),
-  levels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
-  payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
+#process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
+#from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
+#process.patJetCorrFactorsReapplyJEC = process.patJetCorrFactorsUpdated.clone(
+#  src = cms.InputTag("slimmedJets"),
+#  levels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
+#  payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
+#
+#from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
+#process.patJetsReapplyJEC = process.patJetsUpdated.clone(
+#  jetSource = cms.InputTag("slimmedJets"),
+#  jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
+#  )
+#process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
 
-from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
-process.patJetsReapplyJEC = process.patJetsUpdated.clone(
-  jetSource = cms.InputTag("slimmedJets"),
-  jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
-  )
-process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+
+updateJetCollection(
+   process,
+   jetSource = cms.InputTag('slimmedJets'),
+   labelName = 'UpdatedJEC',
+   jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None')  # Do not forget 'L2L3Residual' on data!
+)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
@@ -119,7 +129,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 )
 
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'root://eoscms.cern.ch//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v4/000/258/177/00000/CE175343-706D-E511-9957-02163E0142B1.root'
+'file:/afs/cern.ch/user/j/johakala/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/78D74286-45B5-E511-9D63-A0000420FE80.root'
  )
 )
 
@@ -233,4 +243,4 @@ process.p = cms.Path(
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
   process.bhana
 )
-process.p +=cms.Sequence(process.JEC)
+#process.p +=cms.Sequence(process.JEC)
