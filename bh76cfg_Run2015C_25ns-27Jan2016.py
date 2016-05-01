@@ -12,7 +12,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 # Message Logger settings
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.destinations = ['detailedInfo', 'critical', 'cout', 'cerr']
+process.MessageLogger.destinations = ['cout', 'cerr']
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 # Set the process options -- Display summary at the end, enable unscheduled execution
@@ -40,7 +40,7 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 #process.load(eeBadScFilter)
 
 # How many events to process
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 #configurable options ==============================================
 runOnData=True #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
@@ -55,7 +55,8 @@ if runOnData:
   process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
-  process.GlobalTag.globaltag = 'MCRUN2_74_V9'
+  #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
+  process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_RunIIFall15DR76_v1'
 
 #### For applying jet/met corrections from a sql
 #if usePrivateSQlite:
@@ -82,7 +83,7 @@ else:
 #  )
 #  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
-#-----------------For JEC-----------------
+#-----------------For JEC----------------- for 7.6.4 or before
 #process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
 #from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
 #process.patJetCorrFactorsReapplyJEC = process.patJetCorrFactorsUpdated.clone(
@@ -97,14 +98,40 @@ else:
 #  )
 #process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
 
+#-----------------For JEC----------------- for 7.6.4 and above
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 
-updateJetCollection(
-   process,
-   jetSource = cms.InputTag('slimmedJets'),
-   labelName = 'UpdatedJEC',
-   jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None')  # Do not forget 'L2L3Residual' on data!
-)
+if runOnData:
+    updateJetCollection(
+       process,
+       jetSource = cms.InputTag('slimmedJets'),
+       labelName = 'UpdatedJEC',
+       jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute','L2L3Residual']), 'None')  # Do not forget 'L2L3Residual' on data!
+       #jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute','Residual']), 'None')  # Do not forget 'L2L3Residual' on data!
+    )
+else:
+    updateJetCollection(
+       process,
+       jetSource = cms.InputTag('slimmedJets'),
+       labelName = 'UpdatedJEC',
+       jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None')  # Do not forget 'L2L3Residual' on data!
+    )
+
+
+#process.load('JetMETCorrections.Configuration.JetCorrectors_cff')
+#
+#ak4PFchsL2L3 = cms.ESSource(
+#    'ak4PFL2L3CorrectionService',
+#    algorithm = cms.string('AK4PF'),
+#    # the 'algorithm' tag is also the name of the DB payload
+#    useCondDB = cms.untracked.bool(True)
+#    )
+#
+#process.ak4PFchsCorrectedJets   = cms.EDProducer('CorrectedPFJetProducer',
+#    src         = cms.InputTag('ak4PFchsJets'),
+#    #correctors  = cms.vstring('ak4PFCHSL1FastL2L3Corrector')
+#    correctors  = cms.VInputTag('ak4PFCHSL1FastL2L3Corrector')
+#)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
@@ -129,7 +156,8 @@ process.out = cms.OutputModule('PoolOutputModule',
 )
 
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-'file:/afs/cern.ch/user/j/johakala/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/78D74286-45B5-E511-9D63-A0000420FE80.root'
+#'file:/afs/cern.ch/user/j/johakala/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/78D74286-45B5-E511-9D63-A0000420FE80.root'
+'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
  )
 )
 
@@ -207,17 +235,18 @@ for idmod in my_id_modules_ph:
 process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   beamSpot = cms.InputTag('offlineBeamSpot'),
   electronTag = cms.InputTag("slimmedElectrons"),
-  muonTag = cms.untracked.InputTag("slimmedMuons"),
-  jetTag = cms.untracked.InputTag("slimmedJets"),
-  tauTag = cms.untracked.InputTag("slimmedTaus"),
-  metTag = cms.untracked.InputTag("slimmedMETs"),
+  muonTag = cms.InputTag("slimmedMuons"),
+  #jetTag =  cms.InputTag("slimmedJets"),
+  jetTag =  cms.InputTag("selectedUpdatedPatJetsUpdatedJEC"),
+  tauTag =  cms.InputTag("slimmedTaus"),
+  metTag =  cms.InputTag("slimmedMETs"),
   photonTag = cms.InputTag("slimmedPhotons"),
-  rho_lable    = cms.untracked.InputTag("fixedGridRhoFastjetAll"),
+  rho_lable    = cms.InputTag("fixedGridRhoFastjetAll"),
   ebRecHitTag = cms.untracked.InputTag("reducedEgamma", "reducedEBRecHits"),
   eeRecHitTag = cms.untracked.InputTag("reducedEgamma", "reducedEERecHits"),
   primaryVertex = cms.untracked.InputTag("offlineSlimmedPrimaryVertices"),
-  triggerTag = cms.untracked.InputTag("TriggerResults","","HLT"),
-  filterTag = cms.untracked.InputTag("TriggerResults","","RECO"),
+  triggerTag = cms.InputTag("TriggerResults","","HLT"),
+  filterTag = cms.InputTag("TriggerResults","","RECO"),
   prescales = cms.InputTag("patTrigger"), 
   verticesMiniAOD     = cms.InputTag("offlineSlimmedPrimaryVertices"),
   conversionsMiniAOD  = cms.InputTag('reducedEgamma:reducedConversions'),

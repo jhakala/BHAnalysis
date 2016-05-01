@@ -112,16 +112,20 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		std::map<std::string, unsigned int> prescale_counter; 
 		std::map<std::string, unsigned int> trigger_indices;
 
-		edm::InputTag muoLabel_;
-		edm::InputTag jetLabel_;
-		edm::InputTag tauLabel_;
-		edm::InputTag metLabel_;
+		//edm::InputTag muoLabel_;
+		//edm::InputTag jetLabel_;
+		//edm::InputTag tauLabel_;
+		//edm::InputTag metLabel_;
 		edm::InputTag rechitBLabel_;
 		edm::InputTag rechitELabel_;
 		edm::InputTag pvSrc_;
-		edm::InputTag triggerLabel_;
-		edm::InputTag filterLabel_;
-		edm::InputTag rhoLabel_;
+		//edm::InputTag triggerLabel_;
+		//edm::InputTag filterLabel_;
+		//edm::InputTag rhoLabel_;
+
+		edm::EDGetTokenT<TriggerResults> triggerToken_;
+		edm::EDGetTokenT<TriggerResults> filterToken_;
+		edm::EDGetTokenT<double> rhoToken_;
 
 		bool isMCBH;
 		bool DEBUG_;
@@ -150,6 +154,13 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		edm::EDGetTokenT<edm::ValueMap<bool> > phoMediumIdMapToken_;
 		edm::EDGetTokenT<edm::ValueMap<bool> > phoTightIdMapToken_; 
 		edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
+
+		// Pat tokens
+		edm::EDGetTokenT<edm::View<pat::Muon> > muoToken_;
+		edm::EDGetTokenT<edm::View<pat::Jet> > jetToken_;
+		edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
+		edm::EDGetTokenT<edm::View<pat::Tau> > tauToken_;
+
 		//TTree
 		TTree* tree;
 		float JetE[25];
@@ -298,14 +309,14 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 
 // constructors and destructor
 BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
-	muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
-	jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
-	tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
-	metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
+//	muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
+//	jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
+//	tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
+//	metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
 	pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
-	triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
-	filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
-	rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
+//	triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
+//	filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
+//	rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
 	isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
 	DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
 
@@ -324,6 +335,14 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	vtxMiniAODToken_          = mayConsume<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("verticesMiniAOD"));
 	conversionsMiniAODToken_  = mayConsume< reco::ConversionCollection >(iConfig.getParameter<edm::InputTag>("conversionsMiniAOD"));
 	phoLabelToken_            = mayConsume<edm::View<reco::Photon> >(iConfig.getParameter<edm::InputTag>("photonTag"));
+	muoToken_                 = mayConsume<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("muonTag"));
+	jetToken_                 = mayConsume<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetTag"));
+	tauToken_                 = mayConsume<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("tauTag"));
+	metToken_                 = mayConsume<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metTag"));
+        //rhoToken_                 = consumes<double>(rhoLabel_)
+        rhoToken_                 = consumes<double>(iConfig.getParameter<edm::InputTag>("rho_lable"));
+        triggerToken_             = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerTag"));
+        filterToken_             = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("filterTag"));
 }
 
 
@@ -437,29 +456,34 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	iEvent.getByToken(phoTightIdMapToken_ ,tight_id_decisions_ph);
 
 	edm::Handle<double> rhoHandle;
-	iEvent.getByLabel(rhoLabel_,rhoHandle);
+	//iEvent.getByLabel(rhoLabel_,rhoHandle);
+	iEvent.getByToken(rhoToken_,rhoHandle);
 
 	if(rhoHandle.isValid()) {
 		rho_ = *(rhoHandle.product());
 	}
 
 	edm::Handle<edm::View<pat::Muon> > muonHandle;
-	iEvent.getByLabel(muoLabel_,muonHandle);
+	//iEvent.getByLabel(muoLabel_,muonHandle);
+	iEvent.getByToken(muoToken_,muonHandle);
 	const edm::View<pat::Muon> & muons = *muonHandle;   
 
 	edm::Handle<edm::View<pat::Jet> > jetHandle;
-	iEvent.getByLabel(jetLabel_,jetHandle);
+	//iEvent.getByLabel(jetLabel_,jetHandle);
+	iEvent.getByToken(jetToken_,jetHandle);
 	const edm::View<pat::Jet> & jets = *jetHandle;
 
 	edm::Handle<edm::View<pat::MET> > metHandle;
-	iEvent.getByLabel(metLabel_,metHandle);
+	//iEvent.getByLabel(metLabel_,metHandle);
+	iEvent.getByToken(metToken_,metHandle);
 	const edm::View<pat::MET> & mets = *metHandle;
 
 	edm::Handle<edm::View<reco::Photon> > photons;
 	iEvent.getByToken(phoLabelToken_,photons);
 
 	edm::Handle<edm::View<pat::Tau> > tauHandle;
-	iEvent.getByLabel(tauLabel_,tauHandle);
+	//iEvent.getByLabel(tauLabel_,tauHandle);
+	iEvent.getByToken(tauToken_,tauHandle);
 
   if (!isMCBH) {
 		edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
@@ -560,7 +584,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		TriggerResults tr;
 		Handle<TriggerResults> h_trigRes;
-		iEvent.getByLabel(triggerLabel_, h_trigRes);
+		//iEvent.getByLabel(triggerLabel_, h_trigRes);
+		iEvent.getByToken(triggerToken_, h_trigRes);
 		tr = *h_trigRes;
 
 		// MET filter results   
@@ -581,7 +606,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		TriggerResults fr;
 		Handle<TriggerResults> h_filtRes;
-		iEvent.getByLabel(filterLabel_, h_filtRes);
+		//iEvent.getByLabel(filterLabel_, h_filtRes);
+		iEvent.getByToken(filterToken_, h_filtRes);
 		fr = *h_filtRes;
 
 		std::vector<string> triggerList;
