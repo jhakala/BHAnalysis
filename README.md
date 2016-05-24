@@ -14,6 +14,7 @@ git clone https://github.com/jhakala/BHAnalysis.git
 scram b -j8
 ```
 Tested on lxplus.
+From 763_patch1 onwards, the git merge is no longer needed. (See photonID twiki link below)
 ###iia) Customize pmptRecoV4_tuples_2015D.py
 For a particular task, the relevant things to customize are:
 - runOnData -- should be True for data, False for MC.
