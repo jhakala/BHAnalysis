@@ -20,4 +20,5 @@ config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'BHnTuples_2015D_76x_May2'
 
-config.Site.storageSite = 'T3_US_Brown'
+config.Site.storageSite = 'T2_CH_CERN'
+#config.Site.storageSite = 'T3_US_Brown'

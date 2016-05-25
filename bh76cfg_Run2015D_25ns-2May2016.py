@@ -140,7 +140,7 @@ process.out = cms.OutputModule('PoolOutputModule',
 )
 
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
+'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
  )
 )
 
