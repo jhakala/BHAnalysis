@@ -1116,8 +1116,7 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("ResObjPt"   , &ResObjPt   , "ResObjPt/F"  ); 
 
 	tree->Branch("runno"      ,  &runno      , "runno/I"      );
-	//tree->Branch("evtno"      ,  &evtno      , "evtno/I"      ); 
-	tree->Branch("evtno"      ,  &evtno      , "evtno/l"      ); 
+	tree->Branch("evtno"      ,  &evtno      , "evtno/L"      ); 
 	tree->Branch("lumiblock"  ,  &lumiblock  , "lumiblock/I"  );               
 	tree->Branch("isRealData" ,  &isRealData , "isRealData/I" );
 	tree->Branch("muon_d0"    ,  &muon_d0    , "muon_d0/F"    );                                                      
