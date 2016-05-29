@@ -1,8 +1,8 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'BHnTuples_2015D_76X_May2'
-config.General.workArea = 'crab_jobs_2015D_76X_May2'
+config.General.requestName = 'BHnTuples_2015D_76X_May25'
+config.General.workArea = 'crab_jobs_2015D_76X_May25'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
@@ -18,7 +18,7 @@ config.Data.unitsPerJob = 35
 config.Data.lumiMask='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'BHnTuples_2015D_76x_May2'
+config.Data.outputDatasetTag = 'BHnTuples_2015D_76x_May25'
 
 config.Site.storageSite = 'T2_CH_CERN'
 #config.Site.storageSite = 'T3_US_Brown'
