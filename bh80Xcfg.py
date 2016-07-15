@@ -53,11 +53,11 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '76X_dataRun2_16Dec2015_v0'
+  process.GlobalTag.globaltag = '80X_dataRun2_ICHEP16_repro_v0'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
-  process.GlobalTag.globaltag = '76X_mcRun2_asymptotic_RunIIFall15DR76_v1'
+  process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'
 
 #### For applying jet/met corrections from a sql
 #if usePrivateSQlite:
