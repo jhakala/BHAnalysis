@@ -36,6 +36,16 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
     reverseDecision = cms.bool(False)
 )
 
+#===MET filters in 80X ==============================================
+process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
+process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
+process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+
+process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
+process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
+process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+#======================================================================
+
 # Bad EE supercrystal filter
 #process.load(eeBadScFilter)
 
@@ -239,6 +249,8 @@ process.p = cms.Path(
   process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
   process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
+  process.BadPFMuonFilter *		  # 80x new met filter
+  process.BadChargedCandidateFilter *     # 80x new met filter
   process.bhana
 )
 #process.p +=cms.Sequence(process.JEC)
