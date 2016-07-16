@@ -82,21 +82,6 @@ else:
 #  )
 #  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
-#-----------------For JEC----------------- for 7.6.4 or before
-#process.load("PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff")
-#from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetCorrFactorsUpdated
-#process.patJetCorrFactorsReapplyJEC = process.patJetCorrFactorsUpdated.clone(
-#  src = cms.InputTag("slimmedJets"),
-#  levels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
-#  payload = 'AK4PFchs' ) # Make sure to choose the appropriate levels and payload here!
-#
-#from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import patJetsUpdated
-#process.patJetsReapplyJEC = process.patJetsUpdated.clone(
-#  jetSource = cms.InputTag("slimmedJets"),
-#  jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
-#  )
-#process.JEC = cms.Sequence( process.patJetCorrFactorsReapplyJEC + process. patJetsReapplyJEC )
-
 #-----------------For JEC----------------- for 7.6.4 and above
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 
