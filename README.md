@@ -1,20 +1,20 @@
 # BHAnalysis
 ##1) Instructions
 -------------------------------------------
-###i) Compile the nTuplizer against CMSSW_7_4_14
+###i) Compile the nTuplizer against CMSSW_8_0_11 (or later)
 ```
-cmsrel CMSSW_7_4_14
-cd CMSSW_7_4_14/src
+cmsrel CMSSW_8_0_11
+cd CMSSW_8_0_11/src
 cmsenv
-git cms-merge-topic ikrav:egm_id_7.4.12_v1
+git cms-init
+git cms-merge-topic -u cms-met:CMSSW_8_0_X-METFilterUpdate
 scram b -j12
-mkdir <some dir>
-cd <some dir>
-git clone https://github.com/jhakala/BHAnalysis.git
+mkdir BH
+cd BH
+git clone https://github.com/kakwok/BHAnalysis.git
 scram b -j8
 ```
 Tested on lxplus.
-From 763_patch1 onwards, the git merge is no longer needed. (See photonID twiki link below)
 ###iia) Customize pmptRecoV4_tuples_2015D.py
 For a particular task, the relevant things to customize are:
 - runOnData -- should be True for data, False for MC.
