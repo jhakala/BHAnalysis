@@ -288,7 +288,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		// bool passed_trkPOG_toomanystripclus53X;
 		// bool passed_trkPOG_logErrorTooManyClusters;
 		//bool passed_CSCTightHaloFilter;
-		bool passed_CSCTightHalo2015Filter;
+		//bool passed_CSCTightHalo2015Filter;
+		bool passed_globalTightHalo2016Filter;
 		bool passed_EcalDeadCellTriggerPrimitiveFilter;
 		bool passed_EcalDeadCellBoundaryEnergyFilter;
 		bool passed_goodVertices;
@@ -486,6 +487,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	//iEvent.getByLabel(tauLabel_,tauHandle);
 	iEvent.getByToken(tauToken_,tauHandle);
 
+
   if (!isMCBH) {
 		edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
 		iEvent.getByToken(triggerPrescales_, triggerPrescales);
@@ -599,7 +601,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		// passed_trkPOG_toomanystripclus53X = false;
 		// passed_trkPOG_logErrorTooManyClusters = false;
 		//passed_CSCTightHaloFilter = false;
-		passed_CSCTightHalo2015Filter = false;
+		//passed_CSCTightHalo2015Filter = false;
+		passed_globalTightHalo2016Filter = false;
 		passed_EcalDeadCellTriggerPrimitiveFilter = false;
 		passed_EcalDeadCellBoundaryEnergyFilter = false;
 		passed_goodVertices = false;
@@ -654,7 +657,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			// if( filterList[i] == "Flag_trkPOG_toomanystripclus53X")          { passed_trkPOG_toomanystripclus53X = true; } // deprecated
 			// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
 			//if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
-			if( filterList[i] == "Flag_CSCTightHalo2015Filter")                { passed_CSCTightHalo2015Filter = true; }
+			//if( filterList[i] == "Flag_CSCTightHalo2015Filter")                { passed_CSCTightHalo2015Filter = true; }
+			if( filterList[i] == "Flag_globalTightHalo2016Filter")                { passed_globalTightHalo2016Filter= true; }
 			if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
 			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
@@ -1140,7 +1144,8 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("passed_trkPOG_toomanystripclus53X", &passed_trkPOG_toomanystripclus53X, "passed_trkPOG_toomanystripclus53X/O"); 
 	//tree->Branch("passed_trkPOG_logErrorTooManyClusters", &passed_trkPOG_logErrorTooManyClusters, "passed_trkPOG_logErrorTooManyClusters/O"); 
 	//tree->Branch("passed_CSCTightHaloFilter"                 ,  &passed_CSCTightHaloFilter                 ,  "passed_CSCTightHaloFilter/O");
-	tree->Branch("passed_CSCTightHalo2015Filter"                 ,  &passed_CSCTightHalo2015Filter                 ,  "passed_CSCTightHalo2015Filter/O");
+	//tree->Branch("passed_CSCTightHalo2015Filter"                 ,  &passed_CSCTightHalo2015Filter                 ,  "passed_CSCTightHalo2015Filter/O");
+	tree->Branch("passed_globalTightHalo2016Filter"          ,  &passed_globalTightHalo2016Filter          ,  "passed_globalTightHalo2016Filter/O");
 	tree->Branch("passed_EcalDeadCellTriggerPrimitiveFilter" ,  &passed_EcalDeadCellTriggerPrimitiveFilter ,  "passed_EcalDeadCellTriggerPrimitiveFilter/O"); 
 	tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter"   ,  &passed_EcalDeadCellBoundaryEnergyFilter   ,  "passed_EcalDeadCellBoundaryEnergyFilter/O"); 
 	tree->Branch("passed_goodVertices"                       ,  &passed_goodVertices                       ,  "passed_goodVertices/O"); 
