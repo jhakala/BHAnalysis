@@ -275,8 +275,8 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		//bool firedHLT_PFHT400_v1;
 		//bool firedHLT_PFHT600_v2;
 		//bool firedHLT_PFHT650_v2;
-		bool firedHLT_PFHT475_v1;
-		bool firedHLT_PFHT800_v2;
+		bool firedHLT_PFHT475_v3;
+		bool firedHLT_PFHT800_v3;
 
 
 		// bool passed_HBHENoiseFilter;
@@ -582,8 +582,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		//firedHLT_PFHT400_v1  = false;
 		//firedHLT_PFHT600_v2  = false;
 		//firedHLT_PFHT650_v2  = false;
-		firedHLT_PFHT475_v1  = false;
-		firedHLT_PFHT800_v2  = false;
+		firedHLT_PFHT475_v3  = false;
+		firedHLT_PFHT800_v3  = false;
 
 		TriggerResults tr;
 		Handle<TriggerResults> h_trigRes;
@@ -633,8 +633,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			//if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
 			//if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
 			//if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
-			if( triggerList[i] == "HLT_PFHT475_v1")  { firedHLT_PFHT475_v1  = true; }
-			if( triggerList[i] == "HLT_PFHT800_v2")  { firedHLT_PFHT800_v2  = true; }
+			if( triggerList[i] == "HLT_PFHT475_v3")  { firedHLT_PFHT475_v3  = true; }
+			if( triggerList[i] == "HLT_PFHT800_v3")  { firedHLT_PFHT800_v3  = true; }
 
 		}
 		std::vector<string> filterList;
@@ -1132,8 +1132,8 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/O");
 	//tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/O");
 	//tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/O");
-	tree->Branch("firedHLT_PFHT475_v1" ,  &firedHLT_PFHT475_v1 ,  "firedHLT_PFHT475_v1/O" );
-	tree->Branch("firedHLT_PFHT800_v2" ,  &firedHLT_PFHT800_v2 ,  "firedHLT_PFHT800_v2/O" );
+	tree->Branch("firedHLT_PFHT475_v3" ,  &firedHLT_PFHT475_v3 ,  "firedHLT_PFHT475_v3/O" );
+	tree->Branch("firedHLT_PFHT800_v3" ,  &firedHLT_PFHT800_v3 ,  "firedHLT_PFHT800_v3/O" );
 
 	//tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
 	//tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
