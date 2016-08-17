@@ -136,7 +136,7 @@ else:
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
 process.TFileService=cms.Service("TFileService",
-        fileName=cms.string("ntuple_output.root"),
+        fileName=cms.string(options.OutputFile),
         closeFileFast = cms.untracked.bool(True)
 )
 
