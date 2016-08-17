@@ -37,6 +37,11 @@ cd BHAnalysis
 cmsenv
 cmsRun pmptRecoV4_tuples_2015D.py
 ```
+To run a list of signal samples, 
+```
+vim run_MiniAODtoNTuple.py
+python run_MiniAODtoNTyple.py
+```
 
 ###iiib) Run on data/mc over the grid using CRAB3
 
@@ -54,3 +59,4 @@ crab submit crabConfig_2015DpmptRecoV4.py
 * Photon ID                : https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2  
 * Muon ID                  : https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO  
 * MET Filters              : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#MiniAOD
+* GoldenJason              : https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/
