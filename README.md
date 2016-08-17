@@ -59,4 +59,4 @@ crab submit crabConfig_2015DpmptRecoV4.py
 * Photon ID                : https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2  
 * Muon ID                  : https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO  
 * MET Filters              : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#MiniAOD
-* GoldenJason              : https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/
+* GoldenJSON               : https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/
