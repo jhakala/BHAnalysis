@@ -27,7 +27,7 @@ For a particular task, the relevant things to customize are:
 
 ###iib) Customize crabConfig_2015DpmptRecoV4.py
 The relevant things to customize for running on the grid are:
-- inputdataSet -- this should point to the dataset as found on DAS, see Useful Links below.
+- inputdataSet -- this should point to the dataset as found on DAS and MiniAOD campaign twiki, see Useful Links below.
 - lumiMask -- for processing data, this should point toward the golden JSON.
 - storageSite -- this should point to your T2 or T3 where you have write access.
 
@@ -60,3 +60,4 @@ crab submit crabConfig_2015DpmptRecoV4.py
 * Muon ID                  : https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO  
 * MET Filters              : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#MiniAOD
 * GoldenJSON               : https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/
+* MiniAOD                  : https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
