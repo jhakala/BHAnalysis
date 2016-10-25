@@ -61,7 +61,8 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '80X_dataRun2_ICHEP16_repro_v0'
+  #process.GlobalTag.globaltag = '80X_dataRun2_ICHEP16_repro_v0'
+  process.GlobalTag.globaltag = '80X_dataRun2_Prompt_ICHEP16JEC_v0'
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
@@ -224,6 +225,8 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   ebRecHitTag = cms.untracked.InputTag("reducedEgamma", "reducedEBRecHits"),
   eeRecHitTag = cms.untracked.InputTag("reducedEgamma", "reducedEERecHits"),
   primaryVertex = cms.untracked.InputTag("offlineSlimmedPrimaryVertices"),
+  badChHadfilter = cms.InputTag("BadChargedCandidateFilter"),
+  badMufilter    = cms.InputTag("BadPFMuonFilter"),
   triggerTag = cms.InputTag("TriggerResults","","HLT"),
   filterTag = cms.InputTag("TriggerResults","","RECO"),
   prescales = cms.InputTag("patTrigger"), 

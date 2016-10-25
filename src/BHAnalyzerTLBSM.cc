@@ -161,6 +161,11 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
 		edm::EDGetTokenT<edm::View<pat::Tau> > tauToken_;
 
+		// Bad muon, bad charge-hadron tokens
+		edm::EDGetTokenT<bool> BadPFMuonFilterToken_;
+		edm::EDGetTokenT<bool> BadChCandFilterToken_;
+
+
 		//TTree
 		TTree* tree;
 		float JetE[25];
@@ -295,6 +300,9 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		bool passed_goodVertices;
 		bool passed_eeBadScFilter;
 		bool passed_METFilters;
+		bool passed_filterbadChCandidate;
+		bool passed_filterbadPFMuon;
+
 		//TODO 
 		double Reliso_el;
 		double Reliso_mu;
@@ -330,6 +338,7 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	phoMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoMediumIdMap"))),
 	phoTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoTightIdMap"))),
 	triggerPrescales_(consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales")))
+
 {
 	//now do what ever initialization is needed
 	beamSpotToken_            = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"));
@@ -343,8 +352,10 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	metToken_                 = mayConsume<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metTag"));
         //rhoToken_                 = consumes<double>(rhoLabel_)
         rhoToken_                 = consumes<double>(iConfig.getParameter<edm::InputTag>("rho_lable"));
+	BadChCandFilterToken_     = consumes<bool>(iConfig.getParameter<edm::InputTag>("badChHadfilter")),
+	BadPFMuonFilterToken_     = consumes<bool>(iConfig.getParameter<edm::InputTag>("badMufilter")),
         triggerToken_             = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerTag"));
-        filterToken_             = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("filterTag"));
+        filterToken_              = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("filterTag"));
 }
 
 
@@ -487,6 +498,13 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	//iEvent.getByLabel(tauLabel_,tauHandle);
 	iEvent.getByToken(tauToken_,tauHandle);
 
+	edm::Handle<bool> ifilterbadChCand;
+	iEvent.getByToken(BadChCandFilterToken_, ifilterbadChCand);
+	passed_filterbadChCandidate = *ifilterbadChCand;
+
+	edm::Handle<bool> ifilterbadPFMuon;
+	iEvent.getByToken(BadPFMuonFilterToken_, ifilterbadPFMuon);
+	passed_filterbadPFMuon = *ifilterbadPFMuon;
 
   if (!isMCBH) {
 		edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
@@ -635,8 +653,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			//if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
 			//if( triggerList[i] == "HLT_PFHT475_v3")  { firedHLT_PFHT475_v3  = true; }
 			//if( triggerList[i] == "HLT_PFHT800_v3")  { firedHLT_PFHT800_v3  = true; }
-			if( triggerList[i].find("HLT_PFHT475")!=std::string::npos)  { firedHLT_PFHT475 = true; cout<<triggerList[i]<<endl;}
-			if( triggerList[i].find("HLT_PFHT800")!=std::string::npos)  { firedHLT_PFHT800 = true; cout<<triggerList[i]<<endl;}
+			if( triggerList[i].find("HLT_PFHT475")!=std::string::npos)  { firedHLT_PFHT475 = true; }
+			if( triggerList[i].find("HLT_PFHT800")!=std::string::npos)  { firedHLT_PFHT800 = true; }
 
 		}
 		std::vector<string> filterList;
@@ -666,7 +684,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
-    }
+		}
+		if( !passed_filterbadPFMuon && !passed_filterbadChCandidate)
+			cout<<"failling because of badPFMuon/badChCandidate"<<endl;
+			passed_METFilters =false;
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
@@ -1152,6 +1173,8 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter"   ,  &passed_EcalDeadCellBoundaryEnergyFilter   ,  "passed_EcalDeadCellBoundaryEnergyFilter/O"); 
 	tree->Branch("passed_goodVertices"                       ,  &passed_goodVertices                       ,  "passed_goodVertices/O"); 
 	tree->Branch("passed_eeBadScFilter"                      ,  &passed_eeBadScFilter                      ,  "passed_eeBadScFilter/O"); 
+	tree->Branch("passed_filterbadChCandidate"               ,  &passed_filterbadChCandidate               ,  "passed_filterbadChCandidate/O"); 
+	tree->Branch("passed_filterbadPFMuon"                    ,  &passed_filterbadPFMuon                    ,  "passed_filterbadPFMuon/O"); 
 	tree->Branch("passed_METFilters"                         ,  &passed_METFilters                         ,  "passed_METFilters/O"); 
 
 	for (size_t i=0; i<cutNames_.size(); ++i)
