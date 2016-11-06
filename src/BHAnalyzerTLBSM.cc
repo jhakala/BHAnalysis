@@ -685,9 +685,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
 		}
-		if( !passed_filterbadPFMuon && !passed_filterbadChCandidate)
+		if( !passed_filterbadPFMuon && !passed_filterbadChCandidate){
 			cout<<"failling because of badPFMuon/badChCandidate"<<endl;
 			passed_METFilters =false;
+		}
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
