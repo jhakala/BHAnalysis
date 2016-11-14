@@ -15,7 +15,7 @@ git clone https://github.com/kakwok/BHAnalysis.git
 scram b -j8
 ```
 Tested on lxplus.
-###iia) Customize pmptRecoV4_tuples_2015D.py
+###iia) Customize bh80Xcfg.py 
 For a particular task, the relevant things to customize are:
 - runOnData -- should be True for data, False for MC.
 - globaltag -- make sure you apply the correct global tag, see Useful Links below
@@ -25,7 +25,9 @@ For a particular task, the relevant things to customize are:
 - process.maxevents -- for running locally, this is the number of events to run over. (-1 for all events)
 - eleLooseIdMap, phoMediumIdMap, etc. -- these should use the most up-to-date ID maps with the correct bunch crossing spacing.
 
-###iib) Customize crabConfig_2015DpmptRecoV4.py
+note: As this python script needs to be updated often, look for the most updated ```*cfg.py```
+
+###iib) Customize crabConfig_2016G.py
 The relevant things to customize for running on the grid are:
 - inputdataSet -- this should point to the dataset as found on DAS and MiniAOD campaign twiki, see Useful Links below.
 - lumiMask -- for processing data, this should point toward the golden JSON.
@@ -35,20 +37,21 @@ The relevant things to customize for running on the grid are:
 ```
 cd BHAnalysis
 cmsenv
-cmsRun pmptRecoV4_tuples_2015D.py
+cmsRun bh80Xcfg.py
 ```
 To run a list of signal samples, 
 ```
 vim run_MiniAODtoNTuple.py
 python run_MiniAODtoNTyple.py
 ```
+This uses bh80Xcfg_MC.py
 
 ###iiib) Run on data/mc over the grid using CRAB3
 
 ```
 cd BHAnalysis
 source /cvmfs/cms.cern.ch/crab3/crab.sh
-crab submit crabConfig_2015DpmptRecoV4.py
+crab submit crabConfig_2016G.py
 ```
 ##2) Useful links:
 * Data Aggregation Service : https://cmsweb.cern.ch/das/
