@@ -678,17 +678,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
 			//if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
 			//if( filterList[i] == "Flag_CSCTightHalo2015Filter")                { passed_CSCTightHalo2015Filter = true; }
-			if( filterList[i] == "Flag_globalTightHalo2016Filter")                { passed_globalTightHalo2016Filter= true; }
+			if( filterList[i] == "Flag_globalTightHalo2016Filter")           { passed_globalTightHalo2016Filter= true; }
 			if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
 			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
 		}
-		if( !passed_filterbadPFMuon && !passed_filterbadChCandidate){
-			cout<<"failling because of badPFMuon/badChCandidate"<<endl;
-			passed_METFilters =false;
-		}
+		//For taggingMode=false(default), failed events are skimmed.
+		//To skip the event based on the filter under taggingMode, add return after printing results.
+		//if(!passed_filterbadPFMuon)      {cout<<"Failed badPFMuon filter."<<endl;}
+		//if(!passed_filterbadChCandidate) {cout <<"Failed badChCandidate filter."<<endl;}
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
