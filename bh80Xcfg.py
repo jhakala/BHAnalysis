@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms 
+import FWCore.ParameterSet.VarParsing as VarParsing
 #from RecoMET.METFilters.eeBadScFilter_cfi import *
 
 process = cms.Process('ANA')
@@ -40,10 +41,14 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
 process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
 process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+#For tagging mode, i.e. saving the decision
+process.BadPFMuonFilter.taggingMode = cms.bool(True)
 
 process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
 process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
 process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+#For tagging mode, i.e. saving the decision
+process.BadChargedCandidateFilter.taggingMode = cms.bool(True)
 #======================================================================
 
 # Bad EE supercrystal filter
@@ -56,44 +61,55 @@ usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
-#from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
+
+#==Global tags ====================================================
+#see: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
+#===================================================================
+
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  #process.GlobalTag.globaltag = '80X_dataRun2_ICHEP16_repro_v0'
-  process.GlobalTag.globaltag = '80X_dataRun2_Prompt_ICHEP16JEC_v0'
+  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
+  process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v3'     # For ReRECO 2016 C-G 
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
-  #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
   process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'
+#===================================================================
 
-#### For applying jet/met corrections from a sql
-#if usePrivateSQlite:
-#  process.load("CondCore.DBCommon.CondDBCommon_cfi")
-#  from CondCore.DBCommon.CondDBSetup_cfi import *
-#  process.jec = cms.ESSource("PoolDBESSource",
-#    DBParameters = cms.PSet(
-#      messageLevel = cms.untracked.int32(0)
-#      ),
-#    timetype = cms.string('runnumber'),
-#    toGet = cms.VPSet(
-#    cms.PSet(
-#        record = cms.string('JetCorrectionsRecord'),
-#        tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PF'),
-#        label  = cms.untracked.string('AK4PF')
-#        ),
-#    cms.PSet(
-#      record = cms.string('JetCorrectionsRecord'),
-#      tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
-#      label  = cms.untracked.string('AK4PFchs')
-#      ),
-#    ), 
-#    connect = cms.string('sqlite:Summer15_25nsV6_DATA.db')
-#  )
-#  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+#==For applying Jet energy correction from a sqlite file ======================
+# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#J#JecSqliteFile
+# 1. Get sqlite file from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
+# 2. Find list of tags by  conddb --db<dbfile.db> listTags
+# 3. Update the db name
+#===================================================================
+if usePrivateSQlite:
+  process.load("CondCore.DBCommon.CondDBCommon_cfi")
+  from CondCore.DBCommon.CondDBSetup_cfi import *
+  process.jec = cms.ESSource("PoolDBESSource",
+    DBParameters = cms.PSet(
+      messageLevel = cms.untracked.int32(0)
+      ),
+    timetype = cms.string('runnumber'),
+    toGet = cms.VPSet(
+    cms.PSet(
+        record = cms.string('JetCorrectionsRecord'),
+        tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV1_DATA_AK4PF'),
+        label  = cms.untracked.string('AK4PF')
+        ),
+    cms.PSet(
+      record = cms.string('JetCorrectionsRecord'),
+      tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV1_DATA_AK4PFchs'),
+      label  = cms.untracked.string('AK4PFchs')
+      ),
+    ), 
+    connect = cms.string('sqlite:Spring16_23Sep2016AllV1_DATA.db')
+  )
+  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
-#-----------------For JEC----------------- for 7.6.4 and above
+#==Update JEC after MINIAOD ====================================================================
+# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#CorrPatJets
+#==============================================================================================
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 
 if runOnData:
@@ -110,11 +126,22 @@ else:
        labelName = 'UpdatedJEC',
        jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None')  # Do not forget 'L2L3Residual' on data!
     )
+#==============================================================================================
+# Configure output option
+#==============================================================================================
+
+options = VarParsing.VarParsing()
+options.register('outputFile',
+                "ntuple_output.root",
+                VarParsing.VarParsing.multiplicity.singleton,
+                VarParsing.VarParsing.varType.string,
+                "filename of output root file")
+options.parseArguments()
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
 process.TFileService=cms.Service("TFileService",
-        fileName=cms.string("ntuple_output.root"),
+        fileName=cms.string(options.outputFile),
         closeFileFast = cms.untracked.bool(True)
 )
 
@@ -136,11 +163,17 @@ process.out = cms.OutputModule('PoolOutputModule',
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
 #'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
 #'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016C/JetHT/MINIAOD/PromptReco-v2/000/275/890/00000/B08F2A69-5A3F-E611-BA56-02163E01477C.root'
-'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/BH2016G_badEvents_MINIAOD.root'
+#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
+#'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/BH2016G_badEvents_MINIAOD_reRECO.root'
+#'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/2016G.root'
  )
 )
 # How many events to process
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+
+#==============================================================================================
+
 
 ### ---------------------------------------------------------------------------
 ### Removing the HF from the MET computation
