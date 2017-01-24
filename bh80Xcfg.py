@@ -70,8 +70,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
-  process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v3'     # For ReRECO 2016 C-G 
+  process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'

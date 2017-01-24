@@ -709,22 +709,35 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		}
 		// Loose Jet ID (equivalent to previous medium)
 		if(
+			    (
 				(
+				 abs(jet->eta())                       <= 2.7  &&
 				 jet->neutralHadronEnergyFraction()    <  0.99 &&  // 0.90 for tight
 				 jet->neutralEmEnergyFraction()        <  0.99 &&  // 0.90 for tight
-				 // jet->numberOfDaughters()              >  1 this is not the recommended way of doing this
 				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1
-				)                                             && 
-				((
-					abs(jet->eta())                       <= 2.4  && 
-					jet->chargedHadronEnergyFraction()    >  0    && 
-					jet->chargedMultiplicity()            >  0    && 
-					jet->chargedEmEnergyFraction()        <  0.99
-				 )                                             || 
-				 abs(jet->eta())                       >  2.4
-				)                                             && 
-				//abs(jet->eta())                       <= 2.6  &&
-				jet->pt()                             >  20
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 2.4  && 
+				 jet->neutralHadronEnergyFraction()    <  0.99 &&  
+				 jet->neutralEmEnergyFraction()        <  0.99 &&  
+				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1 &&
+				 jet->chargedHadronEnergyFraction()    >  0    && 
+				 jet->chargedMultiplicity()            >  0    && 
+				 jet->chargedEmEnergyFraction()        <  0.99
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 3.0  && 
+				 abs(jet->eta())                       >  2.7  && 
+				 jet->neutralEmEnergyFraction()        >  0.01 &&  
+				 jet->neutralHadronEnergyFraction()    <  0.98 &&  
+				 jet->neutralMultiplicity() > 2 
+				)                                             ||
+				(
+				abs(jet->eta())                       >  3.0  &&
+				jet->neutralEmEnergyFraction()        <  0.90 &&  
+				jet->neutralMultiplicity() > 10
+			        ) 					   
+			    )   &&	jet->pt()                             >  20
 			) {
 			pBH += jet->p4();
 			ST  += jet->et();
