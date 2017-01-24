@@ -57,7 +57,7 @@ process.BadChargedCandidateFilter.taggingMode = cms.bool(True)
 
 #configurable options ==============================================
 runOnData=True #data/MC switch
-usePrivateSQlite=False #use external JECs (sqlite file)
+usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
@@ -78,7 +78,7 @@ else:
 #===================================================================
 
 #==For applying Jet energy correction from a sqlite file ======================
-# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#J#JecSqliteFile
+# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JecSqliteFile
 # 1. Get sqlite file from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
 # 2. Find list of tags by  conddb --db<dbfile.db> listTags
 # 3. Update the db name
