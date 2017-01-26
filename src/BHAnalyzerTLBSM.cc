@@ -678,17 +678,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
 			//if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
 			//if( filterList[i] == "Flag_CSCTightHalo2015Filter")                { passed_CSCTightHalo2015Filter = true; }
-			if( filterList[i] == "Flag_globalTightHalo2016Filter")                { passed_globalTightHalo2016Filter= true; }
+			if( filterList[i] == "Flag_globalTightHalo2016Filter")           { passed_globalTightHalo2016Filter= true; }
 			if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
 			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
 		}
-		if( !passed_filterbadPFMuon && !passed_filterbadChCandidate){
-			cout<<"failling because of badPFMuon/badChCandidate"<<endl;
-			passed_METFilters =false;
-		}
+		//For taggingMode=false(default), failed events are skimmed.
+		//To skip the event based on the filter under taggingMode, add return after printing results.
+		//if(!passed_filterbadPFMuon)      {cout<<"Failed badPFMuon filter."<<endl;}
+		//if(!passed_filterbadChCandidate) {cout <<"Failed badChCandidate filter."<<endl;}
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
@@ -709,22 +709,35 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		}
 		// Loose Jet ID (equivalent to previous medium)
 		if(
+			    (
 				(
+				 abs(jet->eta())                       <= 2.7  &&
 				 jet->neutralHadronEnergyFraction()    <  0.99 &&  // 0.90 for tight
 				 jet->neutralEmEnergyFraction()        <  0.99 &&  // 0.90 for tight
-				 // jet->numberOfDaughters()              >  1 this is not the recommended way of doing this
 				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1
-				)                                             && 
-				((
-					abs(jet->eta())                       <= 2.4  && 
-					jet->chargedHadronEnergyFraction()    >  0    && 
-					jet->chargedMultiplicity()            >  0    && 
-					jet->chargedEmEnergyFraction()        <  0.99
-				 )                                             || 
-				 abs(jet->eta())                       >  2.4
-				)                                             && 
-				//abs(jet->eta())                       <= 2.6  &&
-				jet->pt()                             >  20
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 2.4  && 
+				 jet->neutralHadronEnergyFraction()    <  0.99 &&  
+				 jet->neutralEmEnergyFraction()        <  0.99 &&  
+				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1 &&
+				 jet->chargedHadronEnergyFraction()    >  0    && 
+				 jet->chargedMultiplicity()            >  0    && 
+				 jet->chargedEmEnergyFraction()        <  0.99
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 3.0  && 
+				 abs(jet->eta())                       >  2.7  && 
+				 jet->neutralEmEnergyFraction()        >  0.01 &&  
+				 jet->neutralHadronEnergyFraction()    <  0.98 &&  
+				 jet->neutralMultiplicity() > 2 
+				)                                             ||
+				(
+				abs(jet->eta())                       >  3.0  &&
+				jet->neutralEmEnergyFraction()        <  0.90 &&  
+				jet->neutralMultiplicity() > 10
+			        ) 					   
+			    )   &&	jet->pt()                             >  20
 			) {
 			pBH += jet->p4();
 			ST  += jet->et();
