@@ -93,16 +93,16 @@ if usePrivateSQlite:
     toGet = cms.VPSet(
     cms.PSet(
         record = cms.string('JetCorrectionsRecord'),
-        tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV1_DATA_AK4PF'),
+        tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV2_DATA_AK4PF'),
         label  = cms.untracked.string('AK4PF')
         ),
     cms.PSet(
       record = cms.string('JetCorrectionsRecord'),
-      tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV1_DATA_AK4PFchs'),
+      tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV2_DATA_AK4PFchs'),
       label  = cms.untracked.string('AK4PFchs')
       ),
     ), 
-    connect = cms.string('sqlite:Spring16_23Sep2016AllV1_DATA.db')
+    connect = cms.string('sqlite:Spring16_23Sep2016AllV2_DATA.db')
   )
   process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
