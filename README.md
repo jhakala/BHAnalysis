@@ -1,13 +1,13 @@
 # BHAnalysis
 ##1) Instructions
 -------------------------------------------
-###i) Compile the nTuplizer against CMSSW_8_0_11 (or later)
+###i) Compile the nTuplizer against CMSSW_8_0_20 (or later)
 ```
-cmsrel CMSSW_8_0_11
-cd CMSSW_8_0_11/src
+cmsrel CMSSW_8_0_20
+cd CMSSW_8_0_20/src
 cmsenv
 git cms-init
-git cms-merge-topic -u cms-met:CMSSW_8_0_X-METFilterUpdate
+git cms-merge-topic -u cms-met:fromCMSSW_8_0_20_postICHEPfilter
 git cms-merge-topic ikrav:egm_id_80X_v1
 scram b -j12
 mkdir BH
@@ -63,5 +63,6 @@ crab submit crabConfig_2016G.py
 * Photon ID                : https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2  
 * Muon ID                  : https://twiki.cern.ch/twiki/bin/view/CMS/TopMUO  
 * MET Filters              : https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#MiniAOD
+* HBHEnoiseFilters         : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HCALNoiseFilterRecipe
 * GoldenJSON               : https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/
 * MiniAOD                  : https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
