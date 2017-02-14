@@ -49,6 +49,8 @@ process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
 process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
 #For tagging mode, i.e. saving the decision
 process.BadChargedCandidateFilter.taggingMode = cms.bool(True)
+
+process.load('RecoMET.METFilters.badGlobalMuonTaggersMiniAOD_cff')
 #======================================================================
 
 # Bad EE supercrystal filter
@@ -160,12 +162,27 @@ process.out = cms.OutputModule('PoolOutputModule',
 )
 
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
-#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016C/JetHT/MINIAOD/PromptReco-v2/000/275/890/00000/B08F2A69-5A3F-E611-BA56-02163E01477C.root'
-#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
-'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
-#'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/BH2016G_badEvents_MINIAOD_reRECO.root'
-#'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/2016G.root'
+#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005807/0000/BH2016G_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005807/0000/BH2016G_badevents_newFilter_2.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005807/0000/BH2016G_badevents_newFilter_3.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005921/0000/BH2016F_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005921/0000/BH2016F_badevents_newFilter_2.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_005921/0000/BH2016F_badevents_newFilter_3.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010029/0000/BH2016E_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010029/0000/BH2016E_badevents_newFilter_2.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010029/0000/BH2016E_badevents_newFilter_3.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010029/0000/BH2016E_badevents_newFilter_4.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010029/0000/BH2016E_badevents_newFilter_5.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010142/0000/BH2016D_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010142/0000/BH2016D_badevents_newFilter_2.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010142/0000/BH2016D_badevents_newFilter_3.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010337/0000/BH2016C_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010612/0000/BH2016B_badevents_newFilter_1.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010612/0000/BH2016B_badevents_newFilter_2.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010612/0000/BH2016B_badevents_newFilter_3.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010612/0000/BH2016B_badevents_newFilter_4.root',
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/user/kakwok/JetHT/crab_pickEvents/170126_010612/0000/BH2016B_badevents_newFilter_5.root'
  )
 )
 # How many events to process
@@ -287,6 +304,7 @@ process.p = cms.Path(
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
   process.BadPFMuonFilter *		  # 80x new met filter
   process.BadChargedCandidateFilter *     # 80x new met filter
+  process.noBadGlobalMuons *		  # new filter to tackle duplicate muon
   process.bhana
 )
 #process.p +=cms.Sequence(process.JEC)
