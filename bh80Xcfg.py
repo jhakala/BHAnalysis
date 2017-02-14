@@ -70,7 +70,8 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
+  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
+  process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'           # For Prompt-RECO 2016H only
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'
@@ -162,8 +163,8 @@ process.out = cms.OutputModule('PoolOutputModule',
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
 #'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
 #'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016C/JetHT/MINIAOD/PromptReco-v2/000/275/890/00000/B08F2A69-5A3F-E611-BA56-02163E01477C.root'
-#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
-'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
+#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
 #'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/BH2016G_badEvents_MINIAOD_reRECO.root'
 #'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/2016G.root'
  )
