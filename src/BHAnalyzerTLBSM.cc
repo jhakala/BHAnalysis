@@ -282,6 +282,10 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		//bool firedHLT_PFHT650_v2;
 		bool firedHLT_PFHT475;
 		bool firedHLT_PFHT800;
+		// Addition triggers for 2016H FW problem
+		bool firedHLT_CaloJet500_NoJetID;
+		bool firedHLT_AK8PFJet450       ;
+		bool firedHLT_PFJet450          ;
 
 
 		// bool passed_HBHENoiseFilter;
@@ -602,6 +606,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		//firedHLT_PFHT650_v2  = false;
 		firedHLT_PFHT475  = false;
 		firedHLT_PFHT800  = false;
+		// Addition triggers for 2016H FW problem
+		firedHLT_CaloJet500_NoJetID  = false;
+		firedHLT_AK8PFJet450         = false;
+		firedHLT_PFJet450            = false;
 
 		TriggerResults tr;
 		Handle<TriggerResults> h_trigRes;
@@ -655,6 +663,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			//if( triggerList[i] == "HLT_PFHT800_v3")  { firedHLT_PFHT800_v3  = true; }
 			if( triggerList[i].find("HLT_PFHT475")!=std::string::npos)  { firedHLT_PFHT475 = true; }
 			if( triggerList[i].find("HLT_PFHT800")!=std::string::npos)  { firedHLT_PFHT800 = true; }
+			if( triggerList[i].find("HLT_CaloJet500_NoJetID")!=std::string::npos)  { firedHLT_CaloJet500_NoJetID = true; }
+			if( triggerList[i].find("HLT_AK8PFJet450")!=std::string::npos)  { firedHLT_AK8PFJet450        = true; }
+			if( triggerList[i].find("HLT_PFJet450")!=std::string::npos)  { firedHLT_PFJet450           = true; }
 
 		}
 		std::vector<string> filterList;
@@ -1171,6 +1182,9 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/O");
 	tree->Branch("firedHLT_PFHT475" ,  &firedHLT_PFHT475 ,  "firedHLT_PFHT475/O" );
 	tree->Branch("firedHLT_PFHT800" ,  &firedHLT_PFHT800 ,  "firedHLT_PFHT800/O" );
+	tree->Branch("firedHLT_CaloJet500_NoJetID" ,  &firedHLT_CaloJet500_NoJetID ,  "firedHLT_CaloJet500_NoJetID/O" );
+	tree->Branch("firedHLT_AK8PFJet450       " ,  &firedHLT_AK8PFJet450        ,  "firedHLT_AK8PFJet450/O" );
+	tree->Branch("firedHLT_PFJet450          " ,  &firedHLT_PFJet450           ,  "firedHLT_PFJet450/O" );
 
 	//tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
 	//tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
