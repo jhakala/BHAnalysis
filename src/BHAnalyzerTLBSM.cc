@@ -1183,8 +1183,8 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("firedHLT_PFHT475" ,  &firedHLT_PFHT475 ,  "firedHLT_PFHT475/O" );
 	tree->Branch("firedHLT_PFHT800" ,  &firedHLT_PFHT800 ,  "firedHLT_PFHT800/O" );
 	tree->Branch("firedHLT_CaloJet500_NoJetID" ,  &firedHLT_CaloJet500_NoJetID ,  "firedHLT_CaloJet500_NoJetID/O" );
-	tree->Branch("firedHLT_AK8PFJet450       " ,  &firedHLT_AK8PFJet450        ,  "firedHLT_AK8PFJet450/O" );
-	tree->Branch("firedHLT_PFJet450          " ,  &firedHLT_PFJet450           ,  "firedHLT_PFJet450/O" );
+	tree->Branch("firedHLT_AK8PFJet450"        ,  &firedHLT_AK8PFJet450        ,  "firedHLT_AK8PFJet450/O" );
+	tree->Branch("firedHLT_PFJet450"           ,  &firedHLT_PFJet450           ,  "firedHLT_PFJet450/O" );
 
 	//tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
 	//tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
