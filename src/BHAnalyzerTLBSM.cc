@@ -881,6 +881,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		}
 
 	}
+	bool hasBadMuon = false;
 	for(edm::View<pat::Muon>::const_iterator mu = muons.begin(); mu!=muons.end(); ++mu){
 		++mucnt;
 		if(DEBUG_){
@@ -890,6 +891,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | eta = "<<fabs(mu->eta())<<
 				" | fabs(vtx_dxy) = "<<fabs(mu->globalTrack()->dxy(vertex_.position()))<<
 				" | "<<endl;
+		}
+		if (mu->isPFMuon()&&(mu->numberOfMatchedStations()==0||mu->innerTrack()->numberOfValidHits()<7||(mu->innerTrack()->numberOfValidHits()<10&&mu->innerTrack()->numberOfLostHits()>0))){
+			hasBadMuon = true;
 		}
 		if(
 				mu->pt()                 >  20   &&
@@ -923,7 +927,10 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       MuPFdBiso[ngoodmuons-1] = (mu->pfIsolationR04().sumChargedHadronPt + max(0., mu->pfIsolationR04().sumNeutralHadronEt + mu->pfIsolationR04().sumPhotonEt - 0.5*mu->pfIsolationR04().sumPUPt))/mu->pt();
 		}//muonID
 	}
-
+	if (hasBadMuon){
+		cout << "Debug: Has badMuon!"<<endl;
+	//	return;
+	}
 
 	//Sorting
 	std::sort(leadingJets.begin(), leadingJets.end());
