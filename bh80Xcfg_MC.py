@@ -34,10 +34,14 @@ options.register('OutputFile',
 
 options.parseArguments()
 
-InputFile = "file:"+options.InputFile
-print "Input MiniAOD =", InputFile
-print "Onput NTuple =", options.OutputFile
+InputFileList = options.InputFile.split(",")
+readFiles = cms.untracked.vstring()
+for f in InputFileList:
+	readFiles.extend([f])
+print "Input MiniAOD =", readFiles 
+print "Output NTuple =", options.OutputFile
 #------------------------------------------------------------------------------------
+
 # Set the process options -- Display summary at the end, enable unscheduled execution
 process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),
@@ -63,10 +67,16 @@ process.ApplyHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
 process.load('RecoMET.METFilters.BadPFMuonFilter_cfi')
 process.BadPFMuonFilter.muons = cms.InputTag("slimmedMuons")
 process.BadPFMuonFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+#For tagging mode, i.e. saving the decision
+process.BadPFMuonFilter.taggingMode = cms.bool(True)
 
 process.load('RecoMET.METFilters.BadChargedCandidateFilter_cfi')
 process.BadChargedCandidateFilter.muons = cms.InputTag("slimmedMuons")
 process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidates")
+#For tagging mode, i.e. saving the decision
+process.BadChargedCandidateFilter.taggingMode = cms.bool(True)
+
+process.load('RecoMET.METFilters.badGlobalMuonTaggersMiniAOD_cff')
 #======================================================================
 
 # Bad EE supercrystal filter
@@ -75,47 +85,59 @@ process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidate
 
 #configurable options ==============================================
 runOnData=False #data/MC switch
-usePrivateSQlite=False #use external JECs (sqlite file)
+usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
-#from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
+
+#==Global tags ====================================================
+#see: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
+#===================================================================
+
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  process.GlobalTag.globaltag = '80X_dataRun2_ICHEP16_repro_v0'
+  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
+  process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'           # For Prompt-RECO 2016H only
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
-  #process.GlobalTag.globaltag = 'MCRUN2_74_V9'
   process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'
+#===================================================================
 
-#### For applying jet/met corrections from a sql
-#if usePrivateSQlite:
-#  process.load("CondCore.DBCommon.CondDBCommon_cfi")
-#  from CondCore.DBCommon.CondDBSetup_cfi import *
-#  process.jec = cms.ESSource("PoolDBESSource",
-#    DBParameters = cms.PSet(
-#      messageLevel = cms.untracked.int32(0)
-#      ),
-#    timetype = cms.string('runnumber'),
-#    toGet = cms.VPSet(
-#    cms.PSet(
-#        record = cms.string('JetCorrectionsRecord'),
-#        tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PF'),
-#        label  = cms.untracked.string('AK4PF')
-#        ),
-#    cms.PSet(
-#      record = cms.string('JetCorrectionsRecord'),
-#      tag    = cms.string('JetCorrectorParametersCollection_Summer15_25nsV6_DATA_AK4PFchs'),
-#      label  = cms.untracked.string('AK4PFchs')
-#      ),
-#    ), 
-#    connect = cms.string('sqlite:Summer15_25nsV6_DATA.db')
-#  )
-#  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+#==For applying Jet energy correction from a sqlite file ======================
+# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JecSqliteFile
+# 1. Get sqlite file from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
+# 2. Find list of tags by  conddb --db<dbfile.db> listTags
+# 3. Update the db name
+#===================================================================
+if usePrivateSQlite:
+  process.load("CondCore.DBCommon.CondDBCommon_cfi")
+  from CondCore.DBCommon.CondDBSetup_cfi import *
+  process.jec = cms.ESSource("PoolDBESSource",
+    DBParameters = cms.PSet(
+      messageLevel = cms.untracked.int32(0)
+      ),
+    timetype = cms.string('runnumber'),
+    toGet = cms.VPSet(
+    cms.PSet(
+        record = cms.string('JetCorrectionsRecord'),
+        tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV2_DATA_AK4PF'),
+        label  = cms.untracked.string('AK4PF')
+        ),
+    cms.PSet(
+      record = cms.string('JetCorrectionsRecord'),
+      tag    = cms.string('JetCorrectorParametersCollection_Spring16_23Sep2016AllV2_DATA_AK4PFchs'),
+      label  = cms.untracked.string('AK4PFchs')
+      ),
+    ), 
+    connect = cms.string('sqlite:Spring16_23Sep2016AllV2_DATA.db')
+  )
+  process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
-#-----------------For JEC----------------- for 7.6.4 and above
+#==Update JEC after MINIAOD ====================================================================
+# from: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#CorrPatJets
+#==============================================================================================
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 
 if runOnData:
@@ -132,8 +154,9 @@ else:
        labelName = 'UpdatedJEC',
        jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None')  # Do not forget 'L2L3Residual' on data!
     )
-
-process.load('FWCore.MessageService.MessageLogger_cfi')
+#==============================================================================================
+# Configure output option
+#==============================================================================================
 
 process.TFileService=cms.Service("TFileService",
         fileName=cms.string(options.OutputFile),
@@ -155,14 +178,14 @@ process.out = cms.OutputModule('PoolOutputModule',
   overrideInputFileSplitLevels = cms.untracked.bool(True)
 )
 
-process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring( 
-#'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
-#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016C/JetHT/MINIAOD/PromptReco-v2/000/275/890/00000/B08F2A69-5A3F-E611-BA56-02163E01477C.root'
-  InputFile
- )
+process.source = cms.Source("PoolSource",
+	fileNames = readFiles
 )
 # How many events to process
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+
+#==============================================================================================
+
 
 ### ---------------------------------------------------------------------------
 ### Removing the HF from the MET computation
@@ -210,8 +233,8 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 ### ------------------------------------------------------------------
 import FWCore.ParameterSet.Config as cms
 import FWCore.PythonUtilities.LumiList as LumiList
-if runOnData:
-	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-276097_13TeV_PromptReco_Collisions16_JSON_NoL1T_v2.txt').getVLuminosityBlockRange()
+#if runOnData:
+#	process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-276097_13TeV_PromptReco_Collisions16_JSON_NoL1T_v2.txt').getVLuminosityBlockRange()
 
 # Set up electron ID (VID framework)
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
@@ -222,7 +245,7 @@ dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
 
 # define which IDs we want to produce
-my_id_modules_el = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff']
+my_id_modules_el = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Summer16_80X_V1_cff']
 
 #add them to the VID producer
 for idmod in my_id_modules_el:
@@ -256,22 +279,28 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   verticesMiniAOD     = cms.InputTag("offlineSlimmedPrimaryVertices"),
   conversionsMiniAOD  = cms.InputTag('reducedEgamma:reducedConversions'),
 
-  eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-  eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-  eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-  eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
+  eleVetoIdMap   = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-veto"  ),
+  eleLooseIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-loose" ),
+  eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium"),
+  eleTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight" ),
  
-  phoLooseIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose"),
+  phoLooseIdMap  = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-loose" ),
   phoMediumIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-medium"),
-  phoTightIdMap = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight"),
+  phoTightIdMap  = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Spring15-25ns-V1-standalone-tight" ),
  
-  MCLabel = cms.untracked.bool(True),                               
+  MCLabel = cms.untracked.bool(False),                               
   DEBUG = cms.untracked.bool(False)                               
 )
 
 
 process.p = cms.Path(
+  process.HBHENoiseFilterResultProducer * # get HBHENoiseFilter decisions
+  process.ApplyBaselineHBHENoiseFilter *  # filter based on HBHENoiseFilter decisions
+  process.ApplyHBHEIsoNoiseFilter *       # filter for HBHENoise isolation
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
+  process.BadPFMuonFilter *		  # 80x new met filter
+  process.BadChargedCandidateFilter *     # 80x new met filter
+  process.noBadGlobalMuons *		  # new filter to tackle duplicate muon
   process.bhana
 )
 #process.p +=cms.Sequence(process.JEC)

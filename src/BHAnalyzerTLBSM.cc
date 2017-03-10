@@ -214,6 +214,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
     float MuPFdBiso[25];
 
 		float ST;
+		float ST_noCut;
 		float mBH;
 		float Met;
 		float MetPx;
@@ -306,6 +307,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		bool passed_METFilters;
 		bool passed_filterbadChCandidate;
 		bool passed_filterbadPFMuon;
+		bool passed_Dimafilter;
 
 		//TODO 
 		double Reliso_el;
@@ -526,6 +528,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	// Loop over all objects and evaluate BH properties: ST, mBH, multiplicity ... NOTE: this is not used in run2.
 	ST=0.;
+	ST_noCut=0.;
 
 	//Lorentz vectors for jets, egamma, muons, leptons, and all objects
 	math::XYZTLorentzVectorF pJet;
@@ -544,7 +547,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	Met = mets[0].pt();
 	MetPhi = mets[0].phi();
 
-	ST += Met;
+	ST       += Met;
+	ST_noCut += Met;
 
 	MetPx = mets[0].px();
 	MetPy = mets[0].py();
@@ -634,6 +638,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		passed_goodVertices = false;
 		passed_eeBadScFilter = false;
 		passed_METFilters = false;
+		passed_Dimafilter = true;
 
 		TriggerResults fr;
 		Handle<TriggerResults> h_filtRes;
@@ -718,6 +723,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | ChargedMulti = "<<jet->chargedMultiplicity()<<
 				" | "<<endl;
 		}
+		ST_noCut += jet->et();
 		// Loose Jet ID (equivalent to previous medium)
 		if(
 			    (
@@ -798,6 +804,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | passMediumId = "<<(*medium_id_decisions)[e]<<
 				" | "<<endl; 
 		}
+		ST_noCut += e->et();
 		// Electron Medium ID
 		if(
 				e->pt()           		  >  20.    &&
@@ -846,6 +853,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | pix_seed = "<< ph->hasPixelSeed()<<
 				" | "<<endl;
 		}
+		ST_noCut += ph->et();
 		if(
 				ph->pt()                        >   20       &&
 				abs(ph->eta())                  <   2.4      &&
@@ -891,6 +899,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | fabs(vtx_dxy) = "<<fabs(mu->globalTrack()->dxy(vertex_.position()))<<
 				" | "<<endl;
 		}
+
+		if (mu->isPFMuon() && mu->isTrackerMuon() &&
+			(mu->numberOfMatchedStations()==0||
+			 mu->innerTrack()->numberOfValidHits()<7||
+			(mu->innerTrack()->numberOfValidHits()<10 && mu->innerTrack()->numberOfLostHits()>0)
+			)
+		    )
+		{
+			passed_Dimafilter = false;
+		}
+		ST_noCut += mu->et();
 		if(
 				mu->pt()                 >  20   &&
 				mu->eta()                <  2.4  &&
@@ -923,7 +942,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       MuPFdBiso[ngoodmuons-1] = (mu->pfIsolationR04().sumChargedHadronPt + max(0., mu->pfIsolationR04().sumNeutralHadronEt + mu->pfIsolationR04().sumPhotonEt - 0.5*mu->pfIsolationR04().sumPUPt))/mu->pt();
 		}//muonID
 	}
-
+	if (!passed_Dimafilter){
+	//	cout << "Debug: Has badMuon!"<<endl;
+	}
 
 	//Sorting
 	std::sort(leadingJets.begin(), leadingJets.end());
@@ -960,7 +981,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	//h_norm -> Fill(ST);
 	for (size_t i=0; i<cutNames_.size(); ++i){
 		std::map<std::string,TH1*>& histo = histos_[i];       
-		histo["ST"]->Fill(ST);
+		histo["ST"]->Fill(ST_noCut);
 	}   
 
 	NPV = nPVcount;
@@ -1203,6 +1224,7 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("passed_eeBadScFilter"                      ,  &passed_eeBadScFilter                      ,  "passed_eeBadScFilter/O"); 
 	tree->Branch("passed_filterbadChCandidate"               ,  &passed_filterbadChCandidate               ,  "passed_filterbadChCandidate/O"); 
 	tree->Branch("passed_filterbadPFMuon"                    ,  &passed_filterbadPFMuon                    ,  "passed_filterbadPFMuon/O"); 
+	tree->Branch("passed_Dimafilter"                         ,  &passed_Dimafilter                         ,  "passed_Dimafilter/O"); 
 	tree->Branch("passed_METFilters"                         ,  &passed_METFilters                         ,  "passed_METFilters/O"); 
 
 	for (size_t i=0; i<cutNames_.size(); ++i)
@@ -1214,7 +1236,7 @@ void BHAnalyzerTLBSM::createHistogram(const std::string& folderName){
 	TFileDirectory subDir = fs_->mkdir(folderName);
 	std::map<std::string, TH1*> container;
 
-	container["ST"] = subDir.make<TH1F>("ST", "ST", 500, 0, 100000);
+	container["ST"] = subDir.make<TH1F>("ST", "ST", 130, 0, 13000);
 
 	histos_.push_back(container);          
 }
