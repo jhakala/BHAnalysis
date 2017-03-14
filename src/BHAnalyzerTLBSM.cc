@@ -308,6 +308,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		bool passed_filterbadChCandidate;
 		bool passed_filterbadPFMuon;
 		bool passed_Dimafilter;
+		bool passed_GiovanniFilter;
 
 		//TODO 
 		double Reliso_el;
@@ -639,6 +640,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		passed_eeBadScFilter = false;
 		passed_METFilters = false;
 		passed_Dimafilter = true;
+		passed_GiovanniFilter = false;
 
 		TriggerResults fr;
 		Handle<TriggerResults> h_filtRes;
@@ -699,6 +701,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
+			if( filterList[i] == "Flag_noBadMuons")                          { passed_GiovanniFilter = true; } // new Flag in re-MiniAOD
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
 		}
 		//For taggingMode=false(default), failed events are skimmed.
@@ -1225,6 +1228,7 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("passed_filterbadChCandidate"               ,  &passed_filterbadChCandidate               ,  "passed_filterbadChCandidate/O"); 
 	tree->Branch("passed_filterbadPFMuon"                    ,  &passed_filterbadPFMuon                    ,  "passed_filterbadPFMuon/O"); 
 	tree->Branch("passed_Dimafilter"                         ,  &passed_Dimafilter                         ,  "passed_Dimafilter/O"); 
+	tree->Branch("passed_GiovanniFilter"                     ,  &passed_GiovanniFilter                     ,  "passed_GiovanniFilter/O"); 
 	tree->Branch("passed_METFilters"                         ,  &passed_METFilters                         ,  "passed_METFilters/O"); 
 
 	for (size_t i=0; i<cutNames_.size(); ++i)
