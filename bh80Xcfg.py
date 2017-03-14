@@ -16,6 +16,27 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.destinations = ['cout', 'cerr']
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
+#------------------------------------------------------------------------------------
+# Options
+#------------------------------------------------------------------------------------
+
+options = VarParsing.VarParsing()
+options.register('GlobalTag',
+                "auto",
+                VarParsing.VarParsing.multiplicity.singleton,
+                VarParsing.VarParsing.varType.string,
+                "GlobalTag to be used")
+options.register('outputFile',
+                "ntuple_output.root",
+                VarParsing.VarParsing.multiplicity.singleton,
+                VarParsing.VarParsing.varType.string,
+                "filename of output root file")
+
+options.parseArguments()
+
+print "Going to use GlobalTag = %s"% options.GlobalTag
+
+#------------------------------------------------------------------------------------
 # Set the process options -- Display summary at the end, enable unscheduled execution
 process.options = cms.untracked.PSet(
     allowUnscheduled = cms.untracked.bool(True),
@@ -50,7 +71,7 @@ process.BadChargedCandidateFilter.PFCandidates = cms.InputTag("packedPFCandidate
 #For tagging mode, i.e. saving the decision
 process.BadChargedCandidateFilter.taggingMode = cms.bool(True)
 
-process.load('RecoMET.METFilters.badGlobalMuonTaggersMiniAOD_cff')
+#process.load('RecoMET.METFilters.badGlobalMuonTaggersMiniAOD_cff')
 #======================================================================
 
 # Bad EE supercrystal filter
@@ -59,7 +80,7 @@ process.load('RecoMET.METFilters.badGlobalMuonTaggersMiniAOD_cff')
 
 #configurable options ==============================================
 runOnData=True #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
+usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True #application of residual JES corrections. Setting this to false removes the residual JES corrections.
 #===================================================================
@@ -72,8 +93,9 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 
 if runOnData:
-  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v4'    # For ReRECO 2016B only
-  process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'           # For Prompt-RECO 2016H only
+  #process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v14'           # For Prompt-RECO 2016H only
+  #process.GlobalTag.globaltag = '80X_dataRun2_2016SeptRepro_v7' # For reMiniAOD
+  process.GlobalTag.globaltag = options.GlobalTag 
 else:
   #process.GlobalTag.globaltag = 'auto:run2_mc'
   process.GlobalTag.globaltag = '80X_mcRun2_asymptotic_RealisticBS_25ns_13TeV2016_v1_mc'
@@ -132,14 +154,6 @@ else:
 # Configure output option
 #==============================================================================================
 
-options = VarParsing.VarParsing()
-options.register('outputFile',
-                "ntuple_output.root",
-                VarParsing.VarParsing.multiplicity.singleton,
-                VarParsing.VarParsing.varType.string,
-                "filename of output root file")
-options.parseArguments()
-
 process.load('FWCore.MessageService.MessageLogger_cfi')
 
 process.TFileService=cms.Service("TFileService",
@@ -166,10 +180,10 @@ process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
 #'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
 #'file:/afs/cern.ch/user/k/kakwok/work/public/CMSSW_7_6_5/src/Blackhole/BHAnalysis/eos/cms/store/data/Run2015C_25ns/JetHT/MINIAOD/16Dec2015-v1/20000/D41FEE23-49B5-E511-B288-3417EBE6471D.root'
 #'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016C/JetHT/MINIAOD/PromptReco-v2/000/275/890/00000/B08F2A69-5A3F-E611-BA56-02163E01477C.root'
-'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
+#'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016H/JetHT/MINIAOD/PromptReco-v2/000/281/256/00000/CEF4A29D-6E82-E611-8CF7-02163E01215C.root'
+'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/03Feb2017_ver2-v2/110000/003A92CA-6FED-E611-82CD-0025905B8590.root'
 #'file:/afs/cern.ch/user/k/kakwok/eos/cms/store/data/Run2016B/JetHT/MINIAOD/23Sep2016-v3/00000/00144F9E-BA97-E611-A8B0-00259074AE48.root'
 #'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/BH2016G_badEvents_MINIAOD_reRECO.root'
-#'file:/afs/cern.ch/user/k/kakwok/work/public/Blackhole/CMSSW_8_1_0_pre16/src/BH/BHAnalysis/2016G.root'
  )
 )
 # How many events to process
@@ -265,7 +279,7 @@ process.bhana = cms.EDAnalyzer('BHAnalyzerTLBSM',
   badChHadfilter = cms.InputTag("BadChargedCandidateFilter"),
   badMufilter    = cms.InputTag("BadPFMuonFilter"),
   triggerTag = cms.InputTag("TriggerResults","","HLT"),
-  filterTag = cms.InputTag("TriggerResults","","RECO"),
+  filterTag = cms.InputTag("TriggerResults","","PAT"),
   prescales = cms.InputTag("patTrigger"), 
   verticesMiniAOD     = cms.InputTag("offlineSlimmedPrimaryVertices"),
   conversionsMiniAOD  = cms.InputTag('reducedEgamma:reducedConversions'),
@@ -291,7 +305,6 @@ process.p = cms.Path(
   (process.egmPhotonIDSequence+process.egmGsfElectronIDSequence) *
   process.BadPFMuonFilter *		  # 80x new met filter
   process.BadChargedCandidateFilter *     # 80x new met filter
-  process.noBadGlobalMuons *		  # new filter to tackle duplicate muon
   process.bhana
 )
 #process.p +=cms.Sequence(process.JEC)
