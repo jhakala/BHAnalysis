@@ -1,21 +1,21 @@
 # BHAnalysis
 ##1) Instructions
 -------------------------------------------
-###i) Compile the nTuplizer against CMSSW_8_0_20 (or later)
+###i) Compile the nTuplizer against CMSSW_8_0_26_patch1 (or later)
 ```
-cmsrel CMSSW_8_0_20
-cd CMSSW_8_0_20/src
+cmsrel CMSSW_8_0_26_patch1
+cd CMSSW_8_0_26_patch1/src
 cmsenv
 git cms-init
-git cms-merge-topic -u cms-met:fromCMSSW_8_0_20_postICHEPfilter
-git cms-merge-topic ikrav:egm_id_80X_v1
+git cms-merge-topic -u cms-met:METRecipe_8020
+git cms-merge-topic ikrav:egm_id_80X_v3
 scram b -j12
 mkdir BH
 cd BH
 git clone https://github.com/kakwok/BHAnalysis.git
 scram b -j8
 ```
-Tested on lxplus.
+Updated for ReMiniAOD campaign.
 ###iia) Customize bh80Xcfg.py 
 For a particular task, the relevant things to customize are:
 - runOnData -- should be True for data, False for MC.
@@ -38,8 +38,9 @@ The relevant things to customize for running on the grid are:
 ```
 cd BHAnalysis
 cmsenv
-cmsRun bh80Xcfg.py
+cmsRun bh80Xcfg.py GlobalTag=80X_dataRun2_2016SeptRepro_v7
 ```
+Check which global tag to use from Global Tags and MiniAOD
 To run a list of signal samples, 
 ```
 vim run_MiniAODtoNTuple.py
