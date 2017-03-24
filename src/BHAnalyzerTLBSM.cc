@@ -112,16 +112,20 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		std::map<std::string, unsigned int> prescale_counter; 
 		std::map<std::string, unsigned int> trigger_indices;
 
-		edm::InputTag muoLabel_;
-		edm::InputTag jetLabel_;
-		edm::InputTag tauLabel_;
-		edm::InputTag metLabel_;
+		//edm::InputTag muoLabel_;
+		//edm::InputTag jetLabel_;
+		//edm::InputTag tauLabel_;
+		//edm::InputTag metLabel_;
 		edm::InputTag rechitBLabel_;
 		edm::InputTag rechitELabel_;
 		edm::InputTag pvSrc_;
-		edm::InputTag triggerLabel_;
-		edm::InputTag filterLabel_;
-		edm::InputTag rhoLabel_;
+		//edm::InputTag triggerLabel_;
+		//edm::InputTag filterLabel_;
+		//edm::InputTag rhoLabel_;
+
+		edm::EDGetTokenT<TriggerResults> triggerToken_;
+		edm::EDGetTokenT<TriggerResults> filterToken_;
+		edm::EDGetTokenT<double> rhoToken_;
 
 		bool isMCBH;
 		bool DEBUG_;
@@ -150,6 +154,18 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		edm::EDGetTokenT<edm::ValueMap<bool> > phoMediumIdMapToken_;
 		edm::EDGetTokenT<edm::ValueMap<bool> > phoTightIdMapToken_; 
 		edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
+
+		// Pat tokens
+		edm::EDGetTokenT<edm::View<pat::Muon> > muoToken_;
+		edm::EDGetTokenT<edm::View<pat::Jet> > jetToken_;
+		edm::EDGetTokenT<edm::View<pat::MET> > metToken_;
+		edm::EDGetTokenT<edm::View<pat::Tau> > tauToken_;
+
+		// Bad muon, bad charge-hadron tokens
+		edm::EDGetTokenT<bool> BadPFMuonFilterToken_;
+		edm::EDGetTokenT<bool> BadChCandFilterToken_;
+
+
 		//TTree
 		TTree* tree;
 		float JetE[25];
@@ -198,6 +214,7 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
     float MuPFdBiso[25];
 
 		float ST;
+		float ST_noCut;
 		float mBH;
 		float Met;
 		float MetPx;
@@ -264,8 +281,12 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		//bool firedHLT_PFHT400_v1;
 		//bool firedHLT_PFHT600_v2;
 		//bool firedHLT_PFHT650_v2;
-		bool firedHLT_PFHT475_v1;
-		bool firedHLT_PFHT800_v2;
+		bool firedHLT_PFHT475;
+		bool firedHLT_PFHT800;
+		// Addition triggers for 2016H FW problem
+		bool firedHLT_CaloJet500_NoJetID;
+		bool firedHLT_AK8PFJet450       ;
+		bool firedHLT_PFJet450          ;
 
 
 		// bool passed_HBHENoiseFilter;
@@ -276,12 +297,19 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 		// bool passed_trkPOG_manystripclus53X;
 		// bool passed_trkPOG_toomanystripclus53X;
 		// bool passed_trkPOG_logErrorTooManyClusters;
-		bool passed_CSCTightHaloFilter;
+		//bool passed_CSCTightHaloFilter;
+		//bool passed_CSCTightHalo2015Filter;
+		bool passed_globalTightHalo2016Filter;
 		bool passed_EcalDeadCellTriggerPrimitiveFilter;
 		bool passed_EcalDeadCellBoundaryEnergyFilter;
 		bool passed_goodVertices;
 		bool passed_eeBadScFilter;
 		bool passed_METFilters;
+		bool passed_filterbadChCandidate;
+		bool passed_filterbadPFMuon;
+		bool passed_Dimafilter;
+		bool passed_GiovanniFilter;
+
 		//TODO 
 		double Reliso_el;
 		double Reliso_mu;
@@ -298,14 +326,14 @@ class BHAnalyzerTLBSM : public edm::EDAnalyzer {
 
 // constructors and destructor
 BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
-	muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
-	jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
-	tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
-	metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
+//	muoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("muonTag")),
+//	jetLabel_(iConfig.getUntrackedParameter<edm::InputTag>("jetTag")),
+//	tauLabel_(iConfig.getUntrackedParameter<edm::InputTag>("tauTag")),
+//	metLabel_(iConfig.getUntrackedParameter<edm::InputTag>("metTag")),
 	pvSrc_(iConfig.getUntrackedParameter<edm::InputTag>("primaryVertex")),
-	triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
-	filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
-	rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
+//	triggerLabel_(iConfig.getUntrackedParameter<edm::InputTag>("triggerTag")),  
+//	filterLabel_(iConfig.getUntrackedParameter<edm::InputTag>("filterTag")),  
+//	rhoLabel_(iConfig.getUntrackedParameter<edm::InputTag>("rho_lable")),
 	isMCBH(iConfig.getUntrackedParameter<bool>("MCLabel",false)),
 	DEBUG_(iConfig.getUntrackedParameter<bool>("DEBUG",false)),
 
@@ -317,6 +345,7 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	phoMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoMediumIdMap"))),
 	phoTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("phoTightIdMap"))),
 	triggerPrescales_(consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales")))
+
 {
 	//now do what ever initialization is needed
 	beamSpotToken_            = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"));
@@ -324,6 +353,16 @@ BHAnalyzerTLBSM::BHAnalyzerTLBSM(const edm::ParameterSet& iConfig):
 	vtxMiniAODToken_          = mayConsume<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("verticesMiniAOD"));
 	conversionsMiniAODToken_  = mayConsume< reco::ConversionCollection >(iConfig.getParameter<edm::InputTag>("conversionsMiniAOD"));
 	phoLabelToken_            = mayConsume<edm::View<reco::Photon> >(iConfig.getParameter<edm::InputTag>("photonTag"));
+	muoToken_                 = mayConsume<edm::View<pat::Muon> >(iConfig.getParameter<edm::InputTag>("muonTag"));
+	jetToken_                 = mayConsume<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("jetTag"));
+	tauToken_                 = mayConsume<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("tauTag"));
+	metToken_                 = mayConsume<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("metTag"));
+        //rhoToken_                 = consumes<double>(rhoLabel_)
+        rhoToken_                 = consumes<double>(iConfig.getParameter<edm::InputTag>("rho_lable"));
+	BadChCandFilterToken_     = consumes<bool>(iConfig.getParameter<edm::InputTag>("badChHadfilter")),
+	BadPFMuonFilterToken_     = consumes<bool>(iConfig.getParameter<edm::InputTag>("badMufilter")),
+        triggerToken_             = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerTag"));
+        filterToken_              = consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("filterTag"));
 }
 
 
@@ -437,29 +476,42 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	iEvent.getByToken(phoTightIdMapToken_ ,tight_id_decisions_ph);
 
 	edm::Handle<double> rhoHandle;
-	iEvent.getByLabel(rhoLabel_,rhoHandle);
+	//iEvent.getByLabel(rhoLabel_,rhoHandle);
+	iEvent.getByToken(rhoToken_,rhoHandle);
 
 	if(rhoHandle.isValid()) {
 		rho_ = *(rhoHandle.product());
 	}
 
 	edm::Handle<edm::View<pat::Muon> > muonHandle;
-	iEvent.getByLabel(muoLabel_,muonHandle);
+	//iEvent.getByLabel(muoLabel_,muonHandle);
+	iEvent.getByToken(muoToken_,muonHandle);
 	const edm::View<pat::Muon> & muons = *muonHandle;   
 
 	edm::Handle<edm::View<pat::Jet> > jetHandle;
-	iEvent.getByLabel(jetLabel_,jetHandle);
+	//iEvent.getByLabel(jetLabel_,jetHandle);
+	iEvent.getByToken(jetToken_,jetHandle);
 	const edm::View<pat::Jet> & jets = *jetHandle;
 
 	edm::Handle<edm::View<pat::MET> > metHandle;
-	iEvent.getByLabel(metLabel_,metHandle);
+	//iEvent.getByLabel(metLabel_,metHandle);
+	iEvent.getByToken(metToken_,metHandle);
 	const edm::View<pat::MET> & mets = *metHandle;
 
 	edm::Handle<edm::View<reco::Photon> > photons;
 	iEvent.getByToken(phoLabelToken_,photons);
 
 	edm::Handle<edm::View<pat::Tau> > tauHandle;
-	iEvent.getByLabel(tauLabel_,tauHandle);
+	//iEvent.getByLabel(tauLabel_,tauHandle);
+	iEvent.getByToken(tauToken_,tauHandle);
+
+	edm::Handle<bool> ifilterbadChCand;
+	iEvent.getByToken(BadChCandFilterToken_, ifilterbadChCand);
+	passed_filterbadChCandidate = *ifilterbadChCand;
+
+	edm::Handle<bool> ifilterbadPFMuon;
+	iEvent.getByToken(BadPFMuonFilterToken_, ifilterbadPFMuon);
+	passed_filterbadPFMuon = *ifilterbadPFMuon;
 
   if (!isMCBH) {
 		edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
@@ -477,6 +529,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	// Loop over all objects and evaluate BH properties: ST, mBH, multiplicity ... NOTE: this is not used in run2.
 	ST=0.;
+	ST_noCut=0.;
 
 	//Lorentz vectors for jets, egamma, muons, leptons, and all objects
 	math::XYZTLorentzVectorF pJet;
@@ -495,7 +548,8 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	Met = mets[0].pt();
 	MetPhi = mets[0].phi();
 
-	ST += Met;
+	ST       += Met;
+	ST_noCut += Met;
 
 	MetPx = mets[0].px();
 	MetPy = mets[0].py();
@@ -555,12 +609,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		//firedHLT_PFHT400_v1  = false;
 		//firedHLT_PFHT600_v2  = false;
 		//firedHLT_PFHT650_v2  = false;
-		firedHLT_PFHT475_v1  = false;
-		firedHLT_PFHT800_v2  = false;
+		firedHLT_PFHT475  = false;
+		firedHLT_PFHT800  = false;
+		// Addition triggers for 2016H FW problem
+		firedHLT_CaloJet500_NoJetID  = false;
+		firedHLT_AK8PFJet450         = false;
+		firedHLT_PFJet450            = false;
 
 		TriggerResults tr;
 		Handle<TriggerResults> h_trigRes;
-		iEvent.getByLabel(triggerLabel_, h_trigRes);
+		//iEvent.getByLabel(triggerLabel_, h_trigRes);
+		iEvent.getByToken(triggerToken_, h_trigRes);
 		tr = *h_trigRes;
 
 		// MET filter results   
@@ -572,16 +631,21 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		// passed_trkPOG_manystripclus53X = false;
 		// passed_trkPOG_toomanystripclus53X = false;
 		// passed_trkPOG_logErrorTooManyClusters = false;
-		passed_CSCTightHaloFilter = false;
+		//passed_CSCTightHaloFilter = false;
+		//passed_CSCTightHalo2015Filter = false;
+		passed_globalTightHalo2016Filter = false;
 		passed_EcalDeadCellTriggerPrimitiveFilter = false;
 		passed_EcalDeadCellBoundaryEnergyFilter = false;
 		passed_goodVertices = false;
 		passed_eeBadScFilter = false;
 		passed_METFilters = false;
+		passed_Dimafilter = true;
+		passed_GiovanniFilter = false;
 
 		TriggerResults fr;
 		Handle<TriggerResults> h_filtRes;
-		iEvent.getByLabel(filterLabel_, h_filtRes);
+		//iEvent.getByLabel(filterLabel_, h_filtRes);
+		iEvent.getByToken(filterToken_, h_filtRes);
 		fr = *h_filtRes;
 
 		std::vector<string> triggerList;
@@ -602,8 +666,13 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			//if( triggerList[i] == "HLT_PFHT400_v1")  { firedHLT_PFHT400_v1  = true; }
 			//if( triggerList[i] == "HLT_PFHT600_v2")  { firedHLT_PFHT600_v2  = true; }
 			//if( triggerList[i] == "HLT_PFHT650_v2")  { firedHLT_PFHT650_v2  = true; }
-			if( triggerList[i] == "HLT_PFHT475_v1")  { firedHLT_PFHT475_v1  = true; }
-			if( triggerList[i] == "HLT_PFHT800_v2")  { firedHLT_PFHT800_v2  = true; }
+			//if( triggerList[i] == "HLT_PFHT475_v3")  { firedHLT_PFHT475_v3  = true; }
+			//if( triggerList[i] == "HLT_PFHT800_v3")  { firedHLT_PFHT800_v3  = true; }
+			if( triggerList[i].find("HLT_PFHT475")!=std::string::npos)  { firedHLT_PFHT475 = true; }
+			if( triggerList[i].find("HLT_PFHT800")!=std::string::npos)  { firedHLT_PFHT800 = true; }
+			if( triggerList[i].find("HLT_CaloJet500_NoJetID")!=std::string::npos)  { firedHLT_CaloJet500_NoJetID = true; }
+			if( triggerList[i].find("HLT_AK8PFJet450")!=std::string::npos)  { firedHLT_AK8PFJet450        = true; }
+			if( triggerList[i].find("HLT_PFJet450")!=std::string::npos)  { firedHLT_PFJet450           = true; }
 
 		}
 		std::vector<string> filterList;
@@ -625,13 +694,20 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			// if( filterList[i] == "Flag_trkPOG_manystripclus53X")             { passed_trkPOG_manystripclus53X = true; } // deprecated
 			// if( filterList[i] == "Flag_trkPOG_toomanystripclus53X")          { passed_trkPOG_toomanystripclus53X = true; } // deprecated
 			// if( filterList[i] == "Flag_trkPOG_logErrorTooManyClusters")      { passed_trkPOG_logErrorTooManyClusters = true; } // deprecated
-			if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
+			//if( filterList[i] == "Flag_CSCTightHaloFilter")                  { passed_CSCTightHaloFilter = true; }
+			//if( filterList[i] == "Flag_CSCTightHalo2015Filter")                { passed_CSCTightHalo2015Filter = true; }
+			if( filterList[i] == "Flag_globalTightHalo2016Filter")           { passed_globalTightHalo2016Filter= true; }
 			if( filterList[i] == "Flag_EcalDeadCellTriggerPrimitiveFilter")  { passed_EcalDeadCellTriggerPrimitiveFilter = true; } // under scrutiny
 			if( filterList[i] == "Flag_EcalDeadCellBoundaryEnergyFilter")    { passed_EcalDeadCellBoundaryEnergyFilter = true; }   // under scrutiny
 			if( filterList[i] == "Flag_goodVertices")                        { passed_goodVertices = true; }
 			if( filterList[i] == "Flag_eeBadScFilter")                       { passed_eeBadScFilter = true; }
+			if( filterList[i] == "Flag_noBadMuons")                          { passed_GiovanniFilter = true; } // new Flag in re-MiniAOD
 			if( filterList[i] == "Flag_METFilters")                          { passed_METFilters = true; } // be careful using this -- check documentation
-    }
+		}
+		//For taggingMode=false(default), failed events are skimmed.
+		//To skip the event based on the filter under taggingMode, add return after printing results.
+		//if(!passed_filterbadPFMuon)      {cout<<"Failed badPFMuon filter."<<endl;}
+		//if(!passed_filterbadChCandidate) {cout <<"Failed badChCandidate filter."<<endl;}
 	}
 
 	for(edm::View<pat::Jet>::const_iterator jet = jets.begin(); jet!=jets.end(); ++jet){     
@@ -650,24 +726,38 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | ChargedMulti = "<<jet->chargedMultiplicity()<<
 				" | "<<endl;
 		}
+		ST_noCut += jet->et();
 		// Loose Jet ID (equivalent to previous medium)
 		if(
+			    (
 				(
+				 abs(jet->eta())                       <= 2.7  &&
 				 jet->neutralHadronEnergyFraction()    <  0.99 &&  // 0.90 for tight
 				 jet->neutralEmEnergyFraction()        <  0.99 &&  // 0.90 for tight
-				 // jet->numberOfDaughters()              >  1 this is not the recommended way of doing this
 				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1
-				)                                             && 
-				((
-					abs(jet->eta())                       <= 2.4  && 
-					jet->chargedHadronEnergyFraction()    >  0    && 
-					jet->chargedMultiplicity()            >  0    && 
-					jet->chargedEmEnergyFraction()        <  0.99
-				 )                                             || 
-				 abs(jet->eta())                       >  2.4
-				)                                             && 
-				//abs(jet->eta())                       <= 2.6  &&
-				jet->pt()                             >  20
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 2.4  && 
+				 jet->neutralHadronEnergyFraction()    <  0.99 &&  
+				 jet->neutralEmEnergyFraction()        <  0.99 &&  
+				 jet->chargedMultiplicity() + jet->neutralMultiplicity() > 1 &&
+				 jet->chargedHadronEnergyFraction()    >  0    && 
+				 jet->chargedMultiplicity()            >  0    && 
+				 jet->chargedEmEnergyFraction()        <  0.99
+				)                                             || 
+				(
+				 abs(jet->eta())                       <= 3.0  && 
+				 abs(jet->eta())                       >  2.7  && 
+				 jet->neutralEmEnergyFraction()        >  0.01 &&  
+				 jet->neutralHadronEnergyFraction()    <  0.98 &&  
+				 jet->neutralMultiplicity() > 2 
+				)                                             ||
+				(
+				abs(jet->eta())                       >  3.0  &&
+				jet->neutralEmEnergyFraction()        <  0.90 &&  
+				jet->neutralMultiplicity() > 10
+			        ) 					   
+			    )   &&	jet->pt()                             >  20
 			) {
 			pBH += jet->p4();
 			ST  += jet->et();
@@ -717,6 +807,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | passMediumId = "<<(*medium_id_decisions)[e]<<
 				" | "<<endl; 
 		}
+		ST_noCut += e->et();
 		// Electron Medium ID
 		if(
 				e->pt()           		  >  20.    &&
@@ -765,6 +856,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | pix_seed = "<< ph->hasPixelSeed()<<
 				" | "<<endl;
 		}
+		ST_noCut += ph->et();
 		if(
 				ph->pt()                        >   20       &&
 				abs(ph->eta())                  <   2.4      &&
@@ -810,6 +902,17 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				" | fabs(vtx_dxy) = "<<fabs(mu->globalTrack()->dxy(vertex_.position()))<<
 				" | "<<endl;
 		}
+
+		if (mu->isPFMuon() && mu->isTrackerMuon() &&
+			(mu->numberOfMatchedStations()==0||
+			 mu->innerTrack()->numberOfValidHits()<7||
+			(mu->innerTrack()->numberOfValidHits()<10 && mu->innerTrack()->numberOfLostHits()>0)
+			)
+		    )
+		{
+			passed_Dimafilter = false;
+		}
+		ST_noCut += mu->et();
 		if(
 				mu->pt()                 >  20   &&
 				mu->eta()                <  2.4  &&
@@ -842,7 +945,9 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       MuPFdBiso[ngoodmuons-1] = (mu->pfIsolationR04().sumChargedHadronPt + max(0., mu->pfIsolationR04().sumNeutralHadronEt + mu->pfIsolationR04().sumPhotonEt - 0.5*mu->pfIsolationR04().sumPUPt))/mu->pt();
 		}//muonID
 	}
-
+	if (!passed_Dimafilter){
+	//	cout << "Debug: Has badMuon!"<<endl;
+	}
 
 	//Sorting
 	std::sort(leadingJets.begin(), leadingJets.end());
@@ -879,7 +984,7 @@ BHAnalyzerTLBSM::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	//h_norm -> Fill(ST);
 	for (size_t i=0; i<cutNames_.size(); ++i){
 		std::map<std::string,TH1*>& histo = histos_[i];       
-		histo["ST"]->Fill(ST);
+		histo["ST"]->Fill(ST_noCut);
 	}   
 
 	NPV = nPVcount;
@@ -1087,7 +1192,7 @@ void BHAnalyzerTLBSM::beginJob()
 	tree->Branch("ResObjPt"   , &ResObjPt   , "ResObjPt/F"  ); 
 
 	tree->Branch("runno"      ,  &runno      , "runno/I"      );
-	tree->Branch("evtno"      ,  &evtno      , "evtno/I"      ); 
+	tree->Branch("evtno"      ,  &evtno      , "evtno/L"      ); 
 	tree->Branch("lumiblock"  ,  &lumiblock  , "lumiblock/I"  );               
 	tree->Branch("isRealData" ,  &isRealData , "isRealData/I" );
 	tree->Branch("muon_d0"    ,  &muon_d0    , "muon_d0/F"    );                                                      
@@ -1099,8 +1204,11 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("firedHLT_PFHT400_v1",&firedHLT_PFHT400_v1,"firedHLT_PFHT400_v1/O");
 	//tree->Branch("firedHLT_PFHT650_v2",&firedHLT_PFHT650_v2,"firedHLT_PFHT650_v2/O");
 	//tree->Branch("firedHLT_PFHT600_v2",&firedHLT_PFHT600_v2,"firedHLT_PFHT600_v2/O");
-	tree->Branch("firedHLT_PFHT475_v1" ,  &firedHLT_PFHT475_v1 ,  "firedHLT_PFHT475_v1/O" );
-	tree->Branch("firedHLT_PFHT800_v2" ,  &firedHLT_PFHT800_v2 ,  "firedHLT_PFHT800_v2/O" );
+	tree->Branch("firedHLT_PFHT475" ,  &firedHLT_PFHT475 ,  "firedHLT_PFHT475/O" );
+	tree->Branch("firedHLT_PFHT800" ,  &firedHLT_PFHT800 ,  "firedHLT_PFHT800/O" );
+	tree->Branch("firedHLT_CaloJet500_NoJetID" ,  &firedHLT_CaloJet500_NoJetID ,  "firedHLT_CaloJet500_NoJetID/O" );
+	tree->Branch("firedHLT_AK8PFJet450"        ,  &firedHLT_AK8PFJet450        ,  "firedHLT_AK8PFJet450/O" );
+	tree->Branch("firedHLT_PFJet450"           ,  &firedHLT_PFJet450           ,  "firedHLT_PFJet450/O" );
 
 	//tree->Branch("passed_HBHENoiseFilter", &passed_HBHENoiseFilter, "passed_HBHENoiseFilter/O"); 
 	//tree->Branch("passed_HBHENoiseIsoFilter", &passed_HBHENoiseIsoFilter, "passed_HBHENoiseIsoFilter/O"); 
@@ -1110,11 +1218,17 @@ void BHAnalyzerTLBSM::beginJob()
 	//tree->Branch("passed_trkPOG_manystripclus53X", &passed_trkPOG_manystripclus53X, "passed_trkPOG_manystripclus53X/O"); 
 	//tree->Branch("passed_trkPOG_toomanystripclus53X", &passed_trkPOG_toomanystripclus53X, "passed_trkPOG_toomanystripclus53X/O"); 
 	//tree->Branch("passed_trkPOG_logErrorTooManyClusters", &passed_trkPOG_logErrorTooManyClusters, "passed_trkPOG_logErrorTooManyClusters/O"); 
-	tree->Branch("passed_CSCTightHaloFilter"                 ,  &passed_CSCTightHaloFilter                 ,  "passed_CSCTightHaloFilter/O");
+	//tree->Branch("passed_CSCTightHaloFilter"                 ,  &passed_CSCTightHaloFilter                 ,  "passed_CSCTightHaloFilter/O");
+	//tree->Branch("passed_CSCTightHalo2015Filter"                 ,  &passed_CSCTightHalo2015Filter                 ,  "passed_CSCTightHalo2015Filter/O");
+	tree->Branch("passed_globalTightHalo2016Filter"          ,  &passed_globalTightHalo2016Filter          ,  "passed_globalTightHalo2016Filter/O");
 	tree->Branch("passed_EcalDeadCellTriggerPrimitiveFilter" ,  &passed_EcalDeadCellTriggerPrimitiveFilter ,  "passed_EcalDeadCellTriggerPrimitiveFilter/O"); 
 	tree->Branch("passed_EcalDeadCellBoundaryEnergyFilter"   ,  &passed_EcalDeadCellBoundaryEnergyFilter   ,  "passed_EcalDeadCellBoundaryEnergyFilter/O"); 
 	tree->Branch("passed_goodVertices"                       ,  &passed_goodVertices                       ,  "passed_goodVertices/O"); 
 	tree->Branch("passed_eeBadScFilter"                      ,  &passed_eeBadScFilter                      ,  "passed_eeBadScFilter/O"); 
+	tree->Branch("passed_filterbadChCandidate"               ,  &passed_filterbadChCandidate               ,  "passed_filterbadChCandidate/O"); 
+	tree->Branch("passed_filterbadPFMuon"                    ,  &passed_filterbadPFMuon                    ,  "passed_filterbadPFMuon/O"); 
+	tree->Branch("passed_Dimafilter"                         ,  &passed_Dimafilter                         ,  "passed_Dimafilter/O"); 
+	tree->Branch("passed_GiovanniFilter"                     ,  &passed_GiovanniFilter                     ,  "passed_GiovanniFilter/O"); 
 	tree->Branch("passed_METFilters"                         ,  &passed_METFilters                         ,  "passed_METFilters/O"); 
 
 	for (size_t i=0; i<cutNames_.size(); ++i)
@@ -1126,7 +1240,7 @@ void BHAnalyzerTLBSM::createHistogram(const std::string& folderName){
 	TFileDirectory subDir = fs_->mkdir(folderName);
 	std::map<std::string, TH1*> container;
 
-	container["ST"] = subDir.make<TH1F>("ST", "ST", 500, 0, 100000);
+	container["ST"] = subDir.make<TH1F>("ST", "ST", 130, 0, 13000);
 
 	histos_.push_back(container);          
 }
